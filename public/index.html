@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Explore Jev through four interactive demos. Bring your own API key, inspect structured decisions, and try real MCP tool routing.">
+  <meta name="theme-color" content="#f6f8fb"><title>Jev in Action</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%232563eb'/%3E%3Ctext x='15' y='29' fill='white' font-size='27'%3EJ%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/playground.css"><script type="module" src="/playground.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="/"><span class="logo">J</span><span>Jev in Action<small>A little intelligence. A lot of possibility.</small></span></a>
+      <div class="header-actions"><a class="github-link" href="https://github.com/jangya/jev-in-action" target="_blank" rel="noopener noreferrer" aria-label="Star Jev in Action on GitHub">☆ Star on GitHub</a><a class="quiet-link" href="/compare.html">Route an MCP tool <span aria-hidden="true">↗</span></a><button id="open-keys" class="button secondary"><span class="status-dot" id="key-dot"></span><span id="key-label">API key</span></button></div>
+    </header>
+    <main>
+      <section class="hero">
+        <div><p class="eyebrow">SMALL DECISIONS. REAL POSSIBILITIES.</p><h1>Small decisions.<br><span>Real possibilities.</span></h1><p class="lede">Give Jev a goal. See it find the right flight, make room in your<br class="desktop-break"> calendar, or bring a little order to your expenses.</p></div>
+        <div class="hero-mark" aria-hidden="true"><span>J</span><i class="orbit one">✦</i><i class="orbit two">✓</i><i class="orbit three">↗</i></div>
+      </section>
+      <nav class="tabs" aria-label="Demo use cases">
+        <button class="tab active" data-view="expenses" aria-pressed="true"><span aria-hidden="true">≡</span> Categorize expenses</button>
+        <button class="tab" data-view="flight" aria-pressed="false"><span aria-hidden="true">↗</span> Book a flight</button>
+        <button class="tab" data-view="appointment" aria-pressed="false"><span aria-hidden="true">▦</span> Book an appointment</button>
+        <a class="tab" href="/compare.html">↗ Route an MCP tool</a>
+      </nav>
+      <div class="section-intro"><div><h2 id="view-title">Your next flight, figured out.</h2><p id="view-subtitle">A few preferences. One flight that fits.</p></div><span class="pill neutral">Demo data · live Jev decisions</span></div>
+      <div class="workspace">
+        <section class="card main-card" aria-label="Demo workspace">
+          <form id="demo-form">
+            <fieldset id="demo-fields">
+              <div class="card-heading"><span class="step-label">01 / YOUR REQUEST</span><button type="button" id="reset" class="text-button">Reset example ↺</button></div>
+              <div class="prompt-heading"><label for="goal">What would you like to do?</label><button type="button" id="shuffle-prompt" class="text-button">⇄ Try another prompt</button></div>
+              <textarea id="goal" maxlength="2000" rows="3" required></textarea>
+              <div id="flight-controls" class="controls">
+                <div><label for="flight-date">Departure date</label><input type="date" id="flight-date" required></div>
+                <div><label for="budget">Budget (₹)</label><input type="number" id="budget" value="15000" min="1" max="1000000" required></div>
+                <div><label for="latest">Arrive by (IST)</label><input type="time" id="latest" value="22:00" required></div>
+                <div><label for="stops">Stops</label><select id="stops"><option value="1">Up to 1 stop</option><option value="0">Non-stop only</option></select></div>
+              </div>
+              <div id="appointment-controls" class="controls" hidden><div><label for="service">Appointment type</label><select id="service"><option value="dental">Dental check-up</option><option value="haircut">Hair appointment</option><option value="consultation">Design consultation</option></select></div><div class="calendar-hint">Pick a day in the calendar below.<br>All appointment times are IST.</div></div>
+              <div class="run-row"><span id="run-status" role="status"><span class="status-dot"></span> Ready when you are</span><button class="button primary" id="run" type="submit">Find my flight <span aria-hidden="true">→</span></button></div>
+              <div id="error" class="error" role="alert" hidden></div>
+              <div id="flight-view" class="result-area">
+                <div class="results-heading"><div><span class="step-label">02 / AVAILABLE FLIGHTS</span><h3>Bengaluru <span class="route-arrow">→</span> Delhi</h3></div><span class="small">BLR – DEL · demo route</span></div>
+                <div id="flights" class="flights"></div>
+              </div>
+              <div id="appointment-view" class="result-area" hidden>
+                <div class="browser-shell"><div class="browser-bar"><span class="browser-dots" aria-hidden="true">● ● ●</span><span>appointments.demo / calendar</span><span aria-hidden="true">↗</span></div><div class="calendar-content"><div class="calendar-heading"><div><span class="step-label">02 / FIND YOUR MOMENT</span><h3 id="month-label"></h3></div><div class="month-buttons"><button type="button" id="prev-month" aria-label="Previous month">‹</button><button type="button" id="next-month" aria-label="Next month">›</button></div></div><div class="weekdays" aria-hidden="true"><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span></div><div id="calendar" class="calendar" aria-label="Choose appointment date"></div><div class="slots-heading"><strong id="slots-date"></strong><span class="small">30 min · IST</span></div><div id="slots" class="slots"></div></div></div>
+              </div>
+              <div id="expenses-view" class="result-area" hidden><div class="results-heading"><div><span class="step-label">02 / YOUR TRANSACTIONS</span><h3>A place for every expense.</h3></div><button type="button" class="text-button" id="add-row">+ Add row</button></div><div class="table-scroll"><table><caption class="sr-only">Editable transactions and Jev categories</caption><thead><tr><th>Description</th><th>Amount (₹)</th><th>Category</th><th><span class="sr-only">Remove</span></th></tr></thead><tbody id="transactions"></tbody></table></div><p class="small table-note">Edit the examples or add your own. Positive amounts represent income.</p></div>
+            </fieldset>
+          </form>
+          <div id="selection" class="selection" hidden><div><span class="step-label">YOUR MATCH</span><h3 id="selection-title"></h3><p id="selection-detail"></p></div><button class="button primary" id="confirm">Confirm demo booking</button></div>
+        </section>
+        <div class="right-column"><aside class="card trace-card" aria-label="Decision trace">
+          <div class="trace-heading"><div><span class="step-label">BEHIND THE DECISION</span><h3 id="trace-title">Flight trace</h3></div><span class="live-pill"><span class="status-dot"></span> JEV</span></div>
+          <div id="result-summary" class="result-summary" role="status" hidden><span class="step-label" id="summary-label">SELECTED FLIGHT</span><h3 id="summary-title"></h3><p id="summary-detail"></p></div><p class="small">Follow the actions, checks, and results as your request runs.</p>
+          <div id="trace" class="trace" aria-live="polite"></div>
+          <div class="metrics"><div><strong id="calls">—</strong><span>API calls</span></div><div><strong id="latency">—</strong><span>Jev response</span></div><div><strong id="decisions">—</strong><span>Decisions</span></div></div>
+          <div class="trace-note"><span aria-hidden="true">✦</span><p>Jev makes the choice.<br><strong>Your app takes the next step.</strong></p></div>
+        </aside>
+        <section class="card model-exchange" aria-label="Exact Jev input and output"><span class="step-label">UNDER THE HOOD</span><h3>Jev input &amp; output</h3><p class="small" id="exchange-status">Run a request to inspect the exact JSON sent and received. Credentials are excluded.</p><details><summary>Input sent to Jev</summary><pre id="model-input">No request yet.</pre></details><details><summary>Output from Jev</summary><pre id="model-output">No response yet.</pre></details></section></div>
+      </div>
+      <div class="bottom-note"><span><span class="status-dot"></span> A playground, with real decisions.</span><p>Flights, availability, and bookings are simulated. No real reservations are made.</p></div>
+    </main>
+    <footer><span>Built with <strong>TypeSafe Jev</strong></span><span class="community-links"><a href="https://github.com/jangya/jev-in-action/issues">Report an issue or suggest a demo ↗</a><a href="https://github.com/jangya/jev-in-action#roadmap">Roadmap</a></span></footer>
+  </div>
+  <dialog id="key-dialog" aria-labelledby="key-title"><form id="key-form"><div class="dialog-heading"><div><p class="eyebrow">CONNECT YOUR PLAYGROUND</p><h2 id="key-title">A key to get started.</h2></div><button type="button" id="close-keys" class="close-button" aria-label="Close API settings">×</button></div><p class="small">Use your TypeSafe key for all three demos. An OpenRouter key is optional, for optional LLM comparison in the MCP use case.</p><label for="jev-key">Jev / TypeSafe API key</label><input type="password" id="jev-key" autocomplete="off" maxlength="4096" placeholder="Paste your API key"><label for="llm-key">OpenRouter API key <span class="small">(optional)</span></label><input type="password" id="llm-key" autocomplete="off" maxlength="4096" placeholder="For Compare models"><label for="llm-model">OpenRouter model</label><input id="llm-model" maxlength="200" placeholder="Use server default" autocomplete="off"><p class="small">Enter a model ID from OpenRouter. Used for comparison and benchmarks; leave blank to use the server default.</p><label class="check-label"><input type="checkbox" id="remember"> Remember on this device</label><p class="small">Otherwise saved only for this browser session. Keys are sent through your local server and are excluded from saved results.</p><p id="key-status" class="small" role="status"></p><div class="dialog-actions"><button type="button" id="clear-keys" class="button secondary">Clear saved keys</button><button class="button primary" type="submit">Save keys</button></div></form></dialog>
+</body>
+</html>

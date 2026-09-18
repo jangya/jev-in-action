@@ -1,0 +1,33 @@
+{
+  "name": "jev-in-action",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env server/index.js",
+    "start": "node --env-file-if-exists=.env server/index.js",
+    "test": "node --test test/*.test.js",
+    "test:browser": "node test/browser.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "express": "^5.0.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.51.0"
+  },
+  "description": "Four interactive Jev demos with inspectable decisions and real MCP tool routing.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jangya/jev-in-action.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jangya/jev-in-action/issues"
+  },
+  "homepage": "https://github.com/jangya/jev-in-action#readme"
+}

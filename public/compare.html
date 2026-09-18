@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="description" content="Explore Jev through expense categorization, flight selection, appointment scheduling, and real MCP tool routing. Bring your own API key and inspect every decision.">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f4f0">
+  <title>Route an MCP tool · Jev in Action</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231c3930'/%3E%3Cpath d='M9 8v16m0-8h14M19 12l4 4-4 4' stroke='%23e5fa8b' stroke-width='3' fill='none'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <header class="topbar"><a href="/" class="brand"><span class="brand-mark">↱</span> Jev in Action <span class="version">/ MCP TOOLS</span></a><div class="community-links"><a href="https://github.com/jangya/jev-in-action" target="_blank" rel="noopener noreferrer">☆ Star on GitHub</a><a class="mode" href="/">← Back to playground</a></div></header>
+  <main>
+    <div class="intro"><div><p class="eyebrow">REAL MCP CALLS · SAMPLE DATA</p><h1>Route an MCP tool.</h1><p class="lede">Give Jev a request. Inspect its tool selection, then execute it through MCP.<br>Optionally compare the same request with an LLM.</p></div><a class="button secondary export" href="/api/export">↓ Export results</a></div>
+    <section id="setup" class="notice" aria-label="Provider configuration"></section>
+    <nav class="tabs use-case-tabs" aria-label="Demo use cases"><a class="tab" href="/#expenses">Categorize expenses</a><a class="tab" href="/#flight">Book a flight</a><a class="tab" href="/#appointment">Book an appointment</a><a class="tab active" href="/compare.html" aria-current="page">Route an MCP tool</a></nav>
+    <div id="message" role="alert" class="message" hidden></div>
+    <section id="compare-view" aria-label="MCP routing">
+      <form id="request-form" class="request-panel">
+        <div class="section-heading"><div class="mcp-prompt-heading"><label for="request">User request</label><button type="button" id="try-mcp-prompt" disabled>⇄ Try another prompt</button></div><label class="comparison-toggle"><input type="checkbox" id="compare-llm"> Compare with an LLM</label></div>
+        <textarea id="request" maxlength="4000" required placeholder="e.g. Is the auth service healthy right now?">Is the auth service healthy right now?</textarea>
+        <div class="request-bottom"><div class="expected"><label for="expected">Expected tool <span class="muted">(optional ground truth)</span></label><select id="expected"><option value="">Not labeled</option></select></div><button type="submit" id="compare-button" class="button primary">Route with Jev <span>↗</span></button></div>
+      </form>
+      <div id="comparison-meta" class="comparison-meta"><span>Waiting for a request</span><span>No MCP calls made</span></div>
+      <div class="router-grid" id="router-grid" aria-live="polite"></div>
+      <section class="execution-panel" aria-labelledby="execution-heading"><div><p class="eyebrow">SINGLE EXECUTION</p><h2 id="execution-heading">Your choice, one tool call.</h2><p class="small" id="execution-status">Route your request, then execute a valid selection below.</p></div><div class="execution-actions"><button class="button secondary" id="execute-llm" disabled>Execute LLM route</button><button class="button secondary" id="execute-jev" disabled>Execute Jev route</button></div><pre id="execution-output" hidden></pre></section>
+      <details class="audit"><summary>Inspect shared input & provider payloads</summary><p class="small">The catalog and request are identical; provider-specific wrappers differ. Expected labels are never sent to either model.</p><pre id="audit-output">Run a comparison to inspect its inputs.</pre></details>
+      <section class="history"><div class="section-heading"><h2>Recent runs</h2><span class="small">Saved locally</span></div><div id="history-list" class="history-list"><p class="small">No comparisons yet.</p></div></section>
+    </section>
+    <details id="benchmark-view" class="benchmark-details"><summary>Compare models · 20-request benchmark</summary>
+      <div class="benchmark-heading"><div><h2>A shared test set. A fair starting point.</h2><p class="small">20 labeled requests · 4 per tool · 40 provider calls · zero tool executions</p></div><button class="button primary" id="benchmark-button">Run 20-request benchmark ↗</button></div>
+      <p class="small">This is a small, fixed-label smoke benchmark with enum arguments—not a general MCP capability evaluation. API calls may incur charges.</p>
+      <p id="benchmark-progress" role="status" class="small">No benchmark run yet.</p>
+      <div id="benchmark-summary"></div>
+      <div class="table-wrap"><table><caption class="sr-only">Expected tools and benchmark routing results</caption><thead><tr><th scope="col">#</th><th scope="col">User request / expected tool</th><th scope="col">LLM</th><th scope="col">Jev</th><th scope="col">Agreement</th></tr></thead><tbody id="dataset-body"></tbody></table></div>
+    </details>
+    <section class="catalog"><div class="section-heading"><h2>Available MCP tools</h2><span class="small">Discovered through MCP · fixed sample results</span></div><div id="catalog-tools"></div><p class="small">Arguments: <code>service</code> = auth / billing / search · <code>environment</code> = production / staging. Production is the shared default. Unsupported requests can return <code>no_tool</code>.</p></section>
+    <footer><span>Jev in Action / local demo</span><a href="https://github.com/jangya/jev-in-action/issues">Report an issue or suggest a demo ↗</a></footer>
+  </main>
+</body>
+</html>
