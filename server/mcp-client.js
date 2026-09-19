@@ -18,3 +18,16 @@ export async function connectMcp() {
   }
   return { tools, callTool: args => client.callTool(args), close: () => client.close() };
 }
+
+// The SDK still performs JSON-RPC discovery and calls, without a subprocess.
+export async function connectHostedMcp() {
+  const { InMemoryTransport } = await import('@modelcontextprotocol/sdk/inMemory.js');
+  const { createMcpServer } = await import('./mcp-fixtures.js');
+  const server = createMcpServer();
+  const client = new Client({ name: 'jev-in-action-hosted', version: '0.1.0' });
+  const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+  await server.connect(serverTransport);
+  await client.connect(clientTransport);
+  const { tools } = await client.listTools();
+  return { tools, callTool: args => client.callTool(args), close: async () => { await client.close(); await server.close(); } };
+}

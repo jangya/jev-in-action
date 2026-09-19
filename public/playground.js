@@ -150,6 +150,7 @@ $('confirm').addEventListener('click', () => {
 async function refreshStatus() {
   try {
     const config = await api('/api/config');
+    if (config.hosted) $('key-storage-note').textContent = 'Keys are sent through this site’s server to the provider for each request. They are not saved on the server. Otherwise saved only for this browser session.';
     $('key-dot').classList.toggle('connected', config.routers.jev.configured);
     $('key-label').textContent = config.routers.jev.configured ? 'Key configured' : 'Add API key';
     $('key-status').textContent = config.routers.jev.configured ? 'Jev key configured. A demo run will verify access.' : 'Add a Jev key to run the demos.';

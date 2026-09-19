@@ -4,13 +4,14 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22"
+    "node": "22.x"
   },
   "scripts": {
     "dev": "node --env-file-if-exists=.env server/index.js",
     "start": "node --env-file-if-exists=.env server/index.js",
     "test": "node --test test/*.test.js",
-    "test:browser": "node test/browser.js"
+    "test:browser": "node test/browser.js",
+    "test:hosted": "node test/hosted-browser.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",

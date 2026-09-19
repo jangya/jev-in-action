@@ -1,5 +1,7 @@
 # Architecture and evaluation notes
 
+The journal and durable execution guarantees below describe **local mode**. Hosted mode uses session-local browser history, an in-process MCP transport, and public read-only fixture execution without a durable server execution ledger. See [Vercel deployment](../README.md#deploy-on-vercel) for that distinction.
+
 ## Design and Jev mapping
 
 ```text

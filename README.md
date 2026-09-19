@@ -4,7 +4,7 @@
 
 Four interactive demos of [TypeSafe Jev](https://docs.typesafe.ai): categorize expenses, choose a flight, find an appointment, and route a real MCP tool call. Bring your own API key, change a prompt, and inspect what the model received and returned.
 
-Built for developers who want to see how structured AI decisions fit into an application. Plain JavaScript, an Express server, and a real local MCP server—no frontend build step.
+Built for developers who want to see how structured AI decisions fit into an application. Plain JavaScript, an Express server, and a real MCP server—no frontend build step.
 
 [Get started](#quick-start) · [How it works](#how-it-works) · [Roadmap](#roadmap) · [Report an issue](https://github.com/jangya/jev-in-action/issues) · [Contribute](CONTRIBUTING.md)
 
@@ -29,7 +29,7 @@ Each use case includes **Try another prompt**. The first three show an action tr
 
 ## Quick start
 
-You need **Node.js 22 or newer**, npm, and a TypeSafe API key with access to Jev. See the [TypeSafe documentation](https://docs.typesafe.ai) for account and API setup. An OpenRouter key is optional.
+You need **Node.js 22**, npm, and a TypeSafe API key with access to Jev. See the [TypeSafe documentation](https://docs.typesafe.ai) for account and API setup. An OpenRouter key is optional.
 
 ```sh
 git clone https://github.com/jangya/jev-in-action.git
@@ -104,12 +104,26 @@ For payload design, execution guarantees, and benchmark interpretation, read the
 ## Keys, data, and hosting
 
 - UI keys use **sessionStorage** by default. **Remember on this device** switches to **localStorage**, which persists after closing the browser. Both are browser storage, not encrypted credential vaults.
-- Keys travel through your local server to the selected provider. They are not intentionally included in model payloads, saved results, or exports. Prompts and application state are sent to the provider.
+- Keys travel through the app server to the selected provider. They are not intentionally included in model payloads, saved results, or exports. Prompts and application state are sent to the provider.
 - **Clear saved keys** removes browser keys; any `.env` keys still apply.
-- MCP routing records and execution results persist in `.data/events.jsonl`, including request text and successful provider responses. JSON exports contain those records. The other three demos do not write results to that journal.
+- When running locally, MCP routing records and execution results persist in `.data/events.jsonl`, including request text and successful provider responses. JSON exports contain those records. The other three demos do not write results to that journal.
 - `.env`, `.data/`, dependencies, and generated test artifacts are ignored by Git. Never paste credentials into prompts, issues, or screenshots.
 
-**This release runs locally.** It binds to loopback and rejects foreign hosts. It is not a static site and is not ready for a shared public deployment: it has no multi-user authentication, per-user history isolation, or rate limiting. Do not expose a server containing your own provider keys. Hosted deployment is a roadmap item.
+## Deploy on Vercel
+
+Import this repository into Vercel with **Express** as the Framework Preset and the repository root as the Root Directory. Use `npm ci` for installation; leave Build Command and Output Directory at their defaults. The root `app.js` is the hosted entry point. `vercel.json` configures a 60-second function limit, security headers, and the Express preset. Node.js is pinned to 22.x.
+
+**No provider environment variables are required.** Visitors enter their own keys in the UI. Hosted code ignores deployment-level API keys; optional `TYPESAFE_MODEL` and `OPENROUTER_MODEL` variables can set model defaults.
+
+Hosted behavior differs from local development:
+
+- History and export belong to the visitor's browser session (up to 100 saved runs). There is no shared server journal or database. Closing the session clears history; export anything you want to keep.
+- The official MCP client and server exchange JSON-RPC messages through the SDK's in-process transport. Local development still uses a subprocess with stdio. Both discover and execute the same read-only fixture tools. Neither connects to live infrastructure.
+- The benchmark makes one server request per case, keeping each request within the function duration instead of holding one long stream open.
+- Hosted execution validates a read-only tool selection submitted by the browser. It has no durable server-side single-execution guarantee or proof that a model selected that call. The UI prevents accidental repeated execution within its saved session. Direct API callers can repeat these harmless sample reads. Do not replace the fixtures with side-effecting tools without adding server-side authorization and durable execution controls.
+- Keys pass through the function to the provider and are not written to server storage. Enable Vercel firewall and spend controls appropriate to your traffic; BYOK avoids shared provider charges but hosting resources can still be consumed.
+
+`npm run dev` continues to use the local entry point and file journal. The shared local journal must not be exposed as a public service.
 
 ## Development
 
@@ -119,6 +133,7 @@ npm test
 # Install Chromium once if Google Chrome is not available on macOS:
 npx playwright install chromium
 npm run test:browser
+npm run test:hosted
 ```
 
 Tests use synthetic provider responses, so no API keys or paid model calls are needed. Browser tests start their own temporary local test server, exercise real MCP calls, and save screenshots to `test-artifacts/`. They do not verify live model quality. CI runs backend and browser checks on Node.js 22.
@@ -152,7 +167,8 @@ These are proposed directions, not delivery commitments. [Open an issue](https:/
 - [ ] A larger routing evaluation set, including ambiguous and unsupported requests.
 - [ ] Optional MCP adapters backed by live services.
 - [ ] A short walkthrough video and more examples of good no-match behavior.
-- [ ] A hosted experience with appropriate credential handling, user isolation, and abuse controls.
+- [x] Vercel-compatible BYOK demos with session-local history.
+- [ ] Additional abuse controls and optional durable, authenticated tool integrations.
 
 Found a bug? [Report it](https://github.com/jangya/jev-in-action/issues/new?template=bug_report.md). Want to build on the project? Read [CONTRIBUTING.md](CONTRIBUTING.md). Small fixes, documentation improvements, and thoughtful demo ideas are welcome.
 

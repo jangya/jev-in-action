@@ -19,7 +19,27 @@ let config,
   busy = false,
   batchResults = [];
 
+const sessionHistoryKey = 'jev-mcp-history';
+function saveHostedHistory() {
+  if (!config?.hosted) return;
+  try { sessionStorage.setItem(sessionHistoryKey, JSON.stringify(history.slice(0, 100))); }
+  catch { message('Browser history storage is full or unavailable. Export results before leaving this page.'); }
+}
+function loadHostedHistory() {
+  try { const records = JSON.parse(sessionStorage.getItem(sessionHistoryKey) || '[]'); return Array.isArray(records) ? records : []; }
+  catch { return []; }
+}
 async function api(path, body) {
+  if (config?.hosted && path === '/api/history') return history;
+  let executionRouter;
+  if (config?.hosted && path === '/api/execute') {
+    const record = history.find(item => item.id === body.comparisonId);
+    executionRouter = body.router;
+    if (!record || record.batchId || record.execution || record[executionRouter].status !== 'ok') throw new Error('This route cannot execute.');
+    body = { tool: record[executionRouter].tool, arguments: record[executionRouter].arguments };
+    record.execution = { status: 'claimed', router: executionRouter };
+    saveHostedHistory();
+  }
   const response = await fetch(
     path,
     body
@@ -32,7 +52,7 @@ async function api(path, body) {
   );
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
-  return data;
+  return executionRouter ? { ...data, router: executionRouter } : data;
 }
 function message(text = "") {
   $("message").textContent = text;
@@ -151,6 +171,7 @@ function executionControls() {
     : "";
 }
 function renderHistory() {
+  saveHostedHistory();
   $("history-list").innerHTML = history.length
     ? history
         .slice(0, 8)
@@ -271,6 +292,7 @@ for (const router of ["llm", "jev"])
         comparison.execution = { status: "unknown", router };
       }
     } finally {
+      saveHostedHistory();
       setBusy(false);
     }
   });
@@ -283,6 +305,17 @@ $("benchmark-button").addEventListener("click", async () => {
   $("benchmark-progress").textContent =
     "Running 0 / 20… Both routers are evaluated for each request.";
   try {
+    if (config.hosted) {
+      const batchId = crypto.randomUUID();
+      for (const item of config.dataset) {
+        const comparison = await api('/api/benchmark-case', { caseId: item.id, batchId });
+        batchResults.push(comparison); history.unshift(comparison); saveHostedHistory();
+        $('benchmark-progress').textContent = `Running ${batchResults.length} / 20… No tools are executing.`;
+        renderDataset(); summarizeBatch();
+      }
+      $('benchmark-progress').textContent = 'Completed 20 / 20 requests. Zero tool executions.';
+      return;
+    }
     const response = await fetch("/api/benchmark", {
       method: "POST",
       headers: { "Content-Type": "application/json", ...keyHeaders() },
@@ -336,6 +369,12 @@ try {
     api("/api/config"),
     api("/api/history"),
   ]);
+  if (config.hosted) {
+    history = loadHostedHistory();
+    document.querySelector('.history .small').textContent = 'This browser session';
+    $('execution-heading').textContent = 'Execute a read-only sample tool.';
+    document.querySelector('.audit p').textContent += ' Hosted execution uses browser-level duplicate protection; it has no durable server-side execution ledger.';
+  }
   const missing = Object.entries(config.routers)
     .filter(([, r]) => !r.configured)
     .map(([name]) =>
@@ -369,7 +408,16 @@ try {
   summarizeBatch();
   setBusy(false);
 } catch (error) {
-  message(`Could not load the local server: ${error.message}`);
+  message(`Could not load the server: ${error.message}`);
   $("compare-button").disabled = true;
   $("benchmark-button").disabled = true;
 }
+
+document.querySelector('.export').addEventListener('click', event => {
+  if (!config?.hosted) return;
+  event.preventDefault();
+  const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), comparisons: history, dataset: config.dataset }, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob), link = document.createElement('a');
+  link.href = url; link.download = 'jev-in-action-results.json'; link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
