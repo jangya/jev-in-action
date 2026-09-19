@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Turn hand gestures into typed JEV decisions and let JEV select a canvas action or leave unclear gestures unchanged.">
+  <title>Gesture-Controlled Web Tools · Jev in Action</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%232563eb'/%3E%3Ctext x='15' y='29' fill='white' font-size='27'%3EJ%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/playground.css"><link rel="stylesheet" href="/navigation.css"><link rel="stylesheet" href="/gesture.css">
+  <script type="module" src="/generated/gesture.js"></script>
+</head>
+<body class="gesture-page">
+<a class="skip-link" href="#main-content">Skip to workspace</a>
+<div class="shell">
+  <header class="topbar"><a class="brand" href="/"><span class="logo">J</span><span>Jev in Action<small>Interactive use cases</small></span></a><div class="header-actions"><a class="github-link" href="https://github.com/jangya/jev-in-action" target="_blank" rel="noopener noreferrer">☆ Star on GitHub</a><button id="open-keys" class="button secondary"><span id="key-label">API key</span></button></div></header>
+  <div class="app-layout"><aside id="use-case-sidebar" class="use-case-sidebar" aria-label="Use case navigation"></aside>
+  <main id="main-content" class="app-main" tabindex="-1">
+    <div class="section-intro"><div><span class="eyebrow">GESTURE-CONTROLLED WEB TOOLS</span><h1>A little motion. A clear intention.</h1><p>Your hands provide the signal. JEV chooses the tool.</p></div><span class="pill neutral">Client-side vision · live JEV</span></div>
+    <div class="gesture-workspace">
+      <section class="card gesture-stage" aria-label="Gesture workspace">
+        <div class="card-heading"><span class="step-label">01 / MAKE YOUR MOVE</span><span id="source-label" class="small">Camera optional</span></div>
+        <div class="camera-row"><div class="camera-preview"><video id="camera-video" autoplay muted playsinline aria-label="Mirrored webcam preview"></video><canvas id="camera-overlay" aria-hidden="true"></canvas><span class="camera-badge">ON-DEVICE VISION</span></div><div class="camera-copy"><strong>Hands in the frame.<br>Ideas in motion.</strong><p id="camera-status" role="status">Camera off · simulations ready</p><button id="camera-toggle" class="button secondary">Enable camera</button><small id="live-gesture">Or try an observation below ↓</small></div></div>
+        <div class="canvas-heading"><span class="step-label">02 / INTERACTIVE CANVAS</span><span class="small">1 object · 1 target</span></div>
+        <div class="canvas-surface">
+          <svg id="gesture-canvas" viewBox="0 0 800 400" role="img" aria-labelledby="canvas-title canvas-description"><title id="canvas-title">Interactive gesture canvas</title><desc id="canvas-description">A violet card and a fixed drop target. Pinch over the card to request a grab, move, then release inside the target.</desc>
+            <g id="drop-target"><rect x="515" y="115" width="170" height="170" rx="22"/><text id="target-label" x="600" y="310">Drop here</text></g>
+            <g id="canvas-group">
+              <g id="object-card" class="canvas-object"><rect class="selection-outline" x="-65" y="-65" width="130" height="130" rx="20"/><rect x="-55" y="-55" width="110" height="110" rx="20" fill="#b9a2ef"/><path d="M-28 -15 H28 M-28 5 H12 M-28 25 H22" stroke="#eaddff" stroke-width="7" stroke-linecap="round"/><text y="85">Pinch to grab</text></g>
+            </g><circle id="pointer" r="9" fill="none" stroke="#3268e8" stroke-width="3" visibility="hidden"/>
+          </svg>
+        </div>
+        <p class="small toolbar-note">Move the blue fingertip cursor onto the card, pinch or close your fist and wait for JEV, then move to drag. Open your hand to drop. To reset, make a fist and open it twice within 3 seconds. Holding an open palm does nothing.</p>
+        <p id="canvas-summary" class="canvas-summary" role="status"></p>
+        <div id="tool-bar" class="tool-bar" role="group" aria-label="Available JEV tools; most recent tool highlighted"></div>
+        <p class="small toolbar-note">Tools light up when JEV selects them.</p>
+      </section>
+      <aside class="card decision-panel" aria-label="JEV decision"><div class="trace-heading"><div><span class="step-label">03 / FROM SIGNAL TO ACTION</span><h2>JEV Decision</h2></div><span class="live-pill">LIVE</span></div>
+        <div class="decision-fields" aria-live="polite"><div><span>Observed pose</span><strong id="observed-pose">Waiting for your move</strong></div><div><span>Observed motion</span><strong id="observed-motion">—</strong></div><div><span>Intent inferred</span><strong id="inferred-intent">—</strong><small>Intent label for the model-selected tool</small></div><div><span>Selected tool</span><strong id="selected-tool" class="tool-value">—</strong></div><div><span>Confidence <b id="confidence-value">—</b></span><progress id="confidence" max="1" value="0" aria-label="JEV Choice confidence"></progress><small>Native JEV Choice confidence: concentration of its answer distribution, not tracking accuracy.</small></div></div>
+        <p id="run-status" class="decision-status" role="status">Ready when you are</p><p id="decision-meta" class="small">One observation. One typed decision.</p><div id="error" class="error" role="alert" hidden></div>
+        <details><summary>Structured observation</summary><pre id="observation-json">No observation yet.</pre></details>
+      </aside>
+    </div>
+    <section class="card simulator-section" aria-labelledby="simulator-title"><div class="simulator-heading"><div><span class="step-label">NO CAMERA? NO PROBLEM.</span><h2 id="simulator-title">Try Gesture Observations</h2><p class="small">Same structured input. Same live JEV decision flow. An API key is required.</p></div><span class="pill neutral">Click to simulate</span></div><div id="simulations" class="simulations"></div><div class="drag-simulator" role="group" aria-label="Simulated pinch and drag"><strong class="small">SIMULATED TRACKING</strong><button id="simulate-grab" class="button secondary">Simulate grab</button><button id="simulate-fist" class="button secondary">Simulate fist grab</button><button id="simulate-move" class="button secondary" disabled>Move to target</button><button id="simulate-outside" class="button secondary" disabled>Move outside</button><button id="simulate-release" class="button secondary" disabled>Release grip</button><button id="simulate-loss" class="button secondary" disabled>Lose tracking</button></div><p class="small">Point + hold targets the card. Simulate grab uses live JEV; movement and release then run locally. Close + open twice simulates the completed reset sequence. Simulating stops the camera so the two inputs never compete.</p></section>
+    <div class="gesture-flow" aria-label="Architecture">Webcam → Hand Landmarker → Gesture features → Structured observation → <strong>JEV</strong> → Selected tool → Canvas</div>
+    <details class="card model-exchange"><summary>Inspect the JEV request &amp; response</summary><div class="exchange-grid"><div><h3>Request</h3><pre id="model-input">No request yet.</pre></div><div><h3>Response</h3><pre id="model-output">No response yet.</pre></div></div></details>
+    <p class="privacy-note">Camera frames and hand landmarks stay on your device. Only structured observations are sent to JEV through this server. Hand tracking assets load on demand.</p>
+  </main></div>
+</div>
+<dialog id="key-dialog"><form id="key-form"><div class="dialog-heading"><h2>Connect JEV</h2><button id="close-keys" type="button" aria-label="Close API key dialog">×</button></div><p class="small">Use your existing playground key or add one here.</p><label for="jev-key">JEV API key</label><input id="jev-key" type="password" autocomplete="off" maxlength="4096"><label class="remember"><input id="remember" type="checkbox"> Remember on this device</label><p class="small">Keys are sent through this server to the provider, not stored on the server. By default, browser storage lasts for this session.</p><p id="key-status" role="status"></p><div class="dialog-actions"><button id="clear-keys" class="button secondary" type="button">Clear browser keys</button><button class="button primary" type="submit">Save key</button></div></form></dialog>
+</body></html>

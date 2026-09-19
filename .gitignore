@@ -12,3 +12,7 @@ playwright-report/
 test-results/
 .codex/
 .vscode/
+
+# Generated TypeScript bundles and MediaPipe runtime
+dist/
+public/generated/

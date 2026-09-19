@@ -1,3 +1,4 @@
+import './navigation.js';
 import { keyHeaders } from './credentials.js';
 const $ = (id) => document.getElementById(id);
 const escape = (value) =>

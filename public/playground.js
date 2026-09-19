@@ -1,3 +1,4 @@
+import './navigation.js';
 import { flights, transactions, services, slotsFor } from './demo-data.js';
 import { readKeys, saveKeys, clearKeys, remembered, keyHeaders } from './credentials.js';
 const $ = id => document.getElementById(id);

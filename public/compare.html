@@ -8,14 +8,18 @@
   <title>Route an MCP tool · Jev in Action</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231c3930'/%3E%3Cpath d='M9 8v16m0-8h14M19 12l4 4-4 4' stroke='%23e5fa8b' stroke-width='3' fill='none'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/navigation.css">
   <script type="module" src="/app.js"></script>
 </head>
-<body>
+<body class="compare-page">
+  <a class="skip-link" href="#main-content">Skip to workspace</a>
   <header class="topbar"><a href="/" class="brand"><span class="brand-mark">↱</span> Jev in Action <span class="version">/ MCP TOOLS</span></a><div class="community-links"><a href="https://github.com/jangya/jev-in-action" target="_blank" rel="noopener noreferrer">☆ Star on GitHub</a><a class="mode" href="/">← Back to playground</a></div></header>
-  <main>
+  <div class="app-layout">
+  <aside id="use-case-sidebar" class="use-case-sidebar" aria-label="Use case navigation"></aside>
+  <main id="main-content" class="app-main" tabindex="-1">
     <div class="intro"><div><p class="eyebrow">REAL MCP CALLS · SAMPLE DATA</p><h1>Route an MCP tool.</h1><p class="lede">Give Jev a request. Inspect its tool selection, then execute it through MCP.<br>Optionally compare the same request with an LLM.</p></div><a class="button secondary export" href="/api/export">↓ Export results</a></div>
     <section id="setup" class="notice" aria-label="Provider configuration"></section>
-    <nav class="tabs use-case-tabs" aria-label="Demo use cases"><a class="tab" href="/#expenses">Categorize expenses</a><a class="tab" href="/#flight">Book a flight</a><a class="tab" href="/#appointment">Book an appointment</a><a class="tab active" href="/compare.html" aria-current="page">Route an MCP tool</a></nav>
+
     <div id="message" role="alert" class="message" hidden></div>
     <section id="compare-view" aria-label="MCP routing">
       <form id="request-form" class="request-panel">
@@ -39,5 +43,6 @@
     <section class="catalog"><div class="section-heading"><h2>Available MCP tools</h2><span class="small">Discovered through MCP · fixed sample results</span></div><div id="catalog-tools"></div><p class="small">Arguments: <code>service</code> = auth / billing / search · <code>environment</code> = production / staging. Production is the shared default. Unsupported requests can return <code>no_tool</code>.</p></section>
     <footer><span>Jev in Action / local demo</span><a href="https://github.com/jangya/jev-in-action/issues">Report an issue or suggest a demo ↗</a></footer>
   </main>
+  </div>
 </body>
 </html>

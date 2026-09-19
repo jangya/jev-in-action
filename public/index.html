@@ -2,29 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Explore Jev through four interactive demos. Bring your own API key, inspect structured decisions, and try real MCP tool routing.">
+  <meta name="description" content="Explore Jev through five interactive demos. Bring your own API key, inspect structured decisions, and try real MCP tool routing.">
   <meta name="theme-color" content="#f6f8fb"><title>Jev in Action</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%232563eb'/%3E%3Ctext x='15' y='29' fill='white' font-size='27'%3EJ%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="/playground.css"><script type="module" src="/playground.js"></script>
+  <link rel="stylesheet" href="/playground.css"><link rel="stylesheet" href="/navigation.css"><script type="module" src="/playground.js"></script>
 </head>
-<body>
+<body class="playground-page">
+  <a class="skip-link" href="#main-content">Skip to workspace</a>
   <div class="shell">
     <header class="topbar">
-      <a class="brand" href="/"><span class="logo">J</span><span>Jev in Action<small>A little intelligence. A lot of possibility.</small></span></a>
-      <div class="header-actions"><a class="github-link" href="https://github.com/jangya/jev-in-action" target="_blank" rel="noopener noreferrer" aria-label="Star Jev in Action on GitHub">☆ Star on GitHub</a><a class="quiet-link" href="/compare.html">Route an MCP tool <span aria-hidden="true">↗</span></a><button id="open-keys" class="button secondary"><span class="status-dot" id="key-dot"></span><span id="key-label">API key</span></button></div>
+      <a class="brand" href="/"><span class="logo">J</span><span>Jev in Action<small>Interactive use cases</small></span></a>
+      <div class="header-actions"><a class="github-link" href="https://github.com/jangya/jev-in-action" target="_blank" rel="noopener noreferrer" aria-label="Star Jev in Action on GitHub">☆ Star on GitHub</a><button id="open-keys" class="button secondary"><span class="status-dot" id="key-dot"></span><span id="key-label">API key</span></button></div>
     </header>
-    <main>
-      <section class="hero">
-        <div><p class="eyebrow">SMALL DECISIONS. REAL POSSIBILITIES.</p><h1>Small decisions.<br><span>Real possibilities.</span></h1><p class="lede">Give Jev a goal. See it find the right flight, make room in your<br class="desktop-break"> calendar, or bring a little order to your expenses.</p></div>
-        <div class="hero-mark" aria-hidden="true"><span>J</span><i class="orbit one">✦</i><i class="orbit two">✓</i><i class="orbit three">↗</i></div>
-      </section>
-      <nav class="tabs" aria-label="Demo use cases">
-        <button class="tab active" data-view="expenses" aria-pressed="true"><span aria-hidden="true">≡</span> Categorize expenses</button>
-        <button class="tab" data-view="flight" aria-pressed="false"><span aria-hidden="true">↗</span> Book a flight</button>
-        <button class="tab" data-view="appointment" aria-pressed="false"><span aria-hidden="true">▦</span> Book an appointment</button>
-        <a class="tab" href="/compare.html">↗ Route an MCP tool</a>
-      </nav>
-      <div class="section-intro"><div><h2 id="view-title">Your next flight, figured out.</h2><p id="view-subtitle">A few preferences. One flight that fits.</p></div><span class="pill neutral">Demo data · live Jev decisions</span></div>
+    <div class="app-layout">
+    <aside id="use-case-sidebar" class="use-case-sidebar" aria-label="Use case navigation"></aside>
+    <main id="main-content" class="app-main" tabindex="-1">
+      <div class="section-intro"><div><h1 id="view-title">Less sorting. More clarity.</h1><p id="view-subtitle">A few preferences. One flight that fits.</p></div><span class="pill neutral">Demo data · live Jev decisions</span></div>
       <div class="workspace">
         <section class="card main-card" aria-label="Demo workspace">
           <form id="demo-form">
@@ -64,8 +57,9 @@
       </div>
       <div class="bottom-note"><span><span class="status-dot"></span> A playground, with real decisions.</span><p>Flights, availability, and bookings are simulated. No real reservations are made.</p></div>
     </main>
+    </div>
     <footer><span>Built with <strong>TypeSafe Jev</strong></span><span class="community-links"><a href="https://github.com/jangya/jev-in-action/issues">Report an issue or suggest a demo ↗</a><a href="https://github.com/jangya/jev-in-action#roadmap">Roadmap</a></span></footer>
   </div>
-  <dialog id="key-dialog" aria-labelledby="key-title"><form id="key-form"><div class="dialog-heading"><div><p class="eyebrow">CONNECT YOUR PLAYGROUND</p><h2 id="key-title">A key to get started.</h2></div><button type="button" id="close-keys" class="close-button" aria-label="Close API settings">×</button></div><p class="small">Use your TypeSafe key for all three demos. An OpenRouter key is optional, for optional LLM comparison in the MCP use case.</p><label for="jev-key">Jev / TypeSafe API key</label><input type="password" id="jev-key" autocomplete="off" maxlength="4096" placeholder="Paste your API key"><label for="llm-key">OpenRouter API key <span class="small">(optional)</span></label><input type="password" id="llm-key" autocomplete="off" maxlength="4096" placeholder="For Compare models"><label for="llm-model">OpenRouter model</label><input id="llm-model" maxlength="200" placeholder="Use server default" autocomplete="off"><p class="small">Enter a model ID from OpenRouter. Used for comparison and benchmarks; leave blank to use the server default.</p><label class="check-label"><input type="checkbox" id="remember"> Remember on this device</label><p class="small" id="key-storage-note">Otherwise saved only for this browser session. Keys are sent through your local server and are excluded from saved results.</p><p id="key-status" class="small" role="status"></p><div class="dialog-actions"><button type="button" id="clear-keys" class="button secondary">Clear saved keys</button><button class="button primary" type="submit">Save keys</button></div></form></dialog>
+  <dialog id="key-dialog" aria-labelledby="key-title"><form id="key-form"><div class="dialog-heading"><div><p class="eyebrow">CONNECT YOUR PLAYGROUND</p><h2 id="key-title">A key to get started.</h2></div><button type="button" id="close-keys" class="close-button" aria-label="Close API settings">×</button></div><p class="small">Use your TypeSafe key for all five demos. An OpenRouter key is optional, for optional LLM comparison in the MCP use case.</p><label for="jev-key">Jev / TypeSafe API key</label><input type="password" id="jev-key" autocomplete="off" maxlength="4096" placeholder="Paste your API key"><label for="llm-key">OpenRouter API key <span class="small">(optional)</span></label><input type="password" id="llm-key" autocomplete="off" maxlength="4096" placeholder="For Compare models"><label for="llm-model">OpenRouter model</label><input id="llm-model" maxlength="200" placeholder="Use server default" autocomplete="off"><p class="small">Enter a model ID from OpenRouter. Used for comparison and benchmarks; leave blank to use the server default.</p><label class="check-label"><input type="checkbox" id="remember"> Remember on this device</label><p class="small" id="key-storage-note">Otherwise saved only for this browser session. Keys are sent through your local server and are excluded from saved results.</p><p id="key-status" class="small" role="status"></p><div class="dialog-actions"><button type="button" id="clear-keys" class="button secondary">Clear saved keys</button><button class="button primary" type="submit">Save keys</button></div></form></dialog>
 </body>
 </html>

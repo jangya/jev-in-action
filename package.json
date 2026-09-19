@@ -11,17 +11,28 @@
     "start": "node --env-file-if-exists=.env server/index.js",
     "test": "node --test test/*.test.js",
     "test:browser": "node test/browser.js",
-    "test:hosted": "node test/hosted-browser.js"
+    "test:hosted": "node test/hosted-browser.js",
+    "build": "node scripts/build-gesture.mjs",
+    "typecheck": "tsc",
+    "predev": "npm run build",
+    "prestart": "npm run build",
+    "pretest": "npm run build",
+    "pretest:browser": "npm run build",
+    "pretest:hosted": "npm run build"
   },
   "dependencies": {
+    "@mediapipe/tasks-vision": "^0.10.32",
     "@modelcontextprotocol/sdk": "^1.0.0",
     "express": "^5.0.0",
     "zod": "^3.25.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.51.0"
+    "@playwright/test": "^1.51.0",
+    "@types/node": "^26.6.2",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
   },
-  "description": "Four interactive Jev demos with inspectable decisions and real MCP tool routing.",
+  "description": "Five interactive Jev demos with inspectable decisions, gesture control, and real MCP tool routing.",
   "license": "MIT",
   "repository": {
     "type": "git",

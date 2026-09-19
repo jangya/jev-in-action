@@ -1,4 +1,5 @@
 import express from 'express';
+import { gestureInput, gestureDecision } from '../dist/gestureDecision.js';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
@@ -22,12 +23,14 @@ export function createApp(experiment, { hosted = false } = {}) {
     }
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'");
+    if (req.path === '/gesture.html') res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; connect-src 'self' https://storage.googleapis.com/mediapipe-models/; img-src 'self' data:; media-src 'self' blob:; frame-ancestors 'none'; base-uri 'none'");
     if (req.path.startsWith('/api/')) res.setHeader('Cache-Control', 'no-store');
     next();
   });
   app.use(express.json({ limit: '32kb' }));
   const keysFor = req => ({ jev: z.string().max(4096).optional().parse(req.get('x-jev-key')), llm: z.string().max(4096).optional().parse(req.get('x-llm-key')), llmModel: z.string().min(1).max(200).regex(/^[a-zA-Z0-9._:/-]+$/).optional().parse(req.get('x-llm-model')) });
   const statusFor = req => Object.fromEntries(Object.entries(routers.status).map(([id, value]) => [id, { ...value, model: id === 'llm' ? keysFor(req).llmModel || value.model : value.model, configured: value.configured || Boolean(keysFor(req)[id]) }]));
+  app.post('/api/gesture', async (req, res) => res.json(await gestureDecision(gestureInput.parse(req.body), routers, keysFor(req).jev)));
   app.post('/api/demo', async (req, res) => res.json(await runDemo(demoInput.parse(req.body), routers, keysFor(req).jev)));
   app.get('/api/config', (req, res) => res.json({ routers: statusFor(req), tools: mcp.tools, dataset, datasetVersion: DATASET_VERSION, dataSource: 'Static demo fixtures', hosted, routing }));
   app.get('/api/history', (_req, res) => res.json(hosted ? [] : [...store.comparisons.values()].reverse().map(c => ({ ...c, execution: store.executions.get(c.id) ?? null }))));

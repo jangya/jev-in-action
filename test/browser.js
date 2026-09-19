@@ -116,6 +116,24 @@ try {
   await page.getByRole('heading', { name: 'Less sorting. More clarity.' }).waitFor();
   await page.getByRole('link', { name: 'Star Jev in Action on GitHub' }).waitFor();
   await page.screenshot({ path: 'test-artifacts/playground-overview.png', fullPage: true });
+  const sidebarBox = await page.locator('#use-case-sidebar').boundingBox();
+  const workspaceBox = await page.locator('#main-content').boundingBox();
+  assert.ok(sidebarBox.x + sidebarBox.width <= workspaceBox.x);
+  assert.ok(workspaceBox.y < 160, 'Workspace starts near the top without a hero');
+  await page.setViewportSize({ width: 375, height: 812 });
+  const navigationToggle = page.getByRole('button', { name: 'Use cases', exact: true });
+  assert.equal(await page.locator('#use-case-list').isVisible(), false);
+  await navigationToggle.click();
+  await page.getByRole('button', { name: 'Book a flight', exact: true }).click();
+  assert.equal(await navigationToggle.getAttribute('aria-expanded'), 'false');
+  assert.equal(await page.locator('#main-content').evaluate(el => el === document.activeElement), true);
+  await navigationToggle.click();
+  await page.keyboard.press('Escape');
+  assert.equal(await navigationToggle.getAttribute('aria-expanded'), 'false');
+  await page.screenshot({ path: 'test-artifacts/playground-mobile.png', fullPage: true });
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await page.getByRole('button', { name: 'Categorize expenses', exact: true }).click();
+
   const originalPrompt = await page.locator('#goal').inputValue();
   await page.getByRole('button', { name: 'Try another prompt' }).click();
   assert.notEqual(await page.locator('#goal').inputValue(), originalPrompt);
