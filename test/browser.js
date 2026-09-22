@@ -218,6 +218,17 @@ try {
   assert.equal(await page.evaluate(() => localStorage.getItem('jev-playground-keys')), null);
   await page.getByRole('button', { name: 'Close API settings' }).click();
   await page.goto(base + '/compare.html');
+  await page.locator('#open-keys').click();
+  await page.locator('#key-dialog').waitFor({ state: 'visible' });
+  assert.ok(page.url().endsWith('/compare.html'));
+  await page.locator('#jev-key').fill('comparison-fixture-key');
+  await page.locator('#llm-key').fill('comparison-fixture-llm');
+  await page.locator('#llm-model').fill('test/model');
+  await page.getByRole('button', { name: 'Save keys', exact: true }).click();
+  await page.locator('#key-dialog').waitFor({ state: 'hidden' });
+  assert.equal(await page.locator('#model').inputValue(), 'test/model');
+  assert.equal(await page.locator('#jev-key').inputValue(), '');
+  assert.ok(page.url().endsWith('/compare.html'));
   await page.getByRole('button', { name: 'Run Both', exact: true }).click();
   await page.locator('#comparison-meta').filter({ hasText: 'Routing result: SAME' }).waitFor();
   assert.equal(await page.locator('#router-grid article').count(), 2);

@@ -17,7 +17,7 @@
   <div class="shell">
     <header class="topbar">
       <a class="brand" href="/"><span class="logo">J</span><span>Jev in Action<small>Interactive use cases</small></span></a>
-      <div class="header-actions"><a class="github-link" href="https://github.com/jangya/jev-in-action" target="_blank" rel="noopener noreferrer">☆ Star on GitHub</a><a class="button secondary" href="/">API key settings</a></div>
+      <div class="header-actions"><a class="github-link" href="https://github.com/jangya/jev-in-action" target="_blank" rel="noopener noreferrer">☆ Star on GitHub</a><button id="open-keys" class="button secondary" type="button"><span class="status-dot" id="key-dot"></span><span id="key-label">API key settings</span></button></div>
     </header>
     <div class="app-layout">
       <aside id="use-case-sidebar" class="use-case-sidebar" aria-label="Use case navigation"></aside>
@@ -58,5 +58,6 @@
     </div>
     <footer><span>Built with <strong>TypeSafe Jev</strong></span><a href="https://github.com/jangya/jev-in-action/issues">Report an issue or suggest a demo ↗</a></footer>
   </div>
+  <dialog id="key-dialog" aria-labelledby="key-title"><form id="key-form"><div class="dialog-heading"><div><p class="eyebrow">CONNECT YOUR PLAYGROUND</p><h2 id="key-title">A key to get started.</h2></div><button type="button" id="close-keys" class="close-button" aria-label="Close API settings">×</button></div><p class="small">OpenRouter is required for both routes. Add a Jev key for the Jev route. Provider charges may apply.</p><label for="jev-key">Jev / TypeSafe API key</label><input type="password" id="jev-key" autocomplete="off" maxlength="4096" placeholder="Paste your API key"><label for="llm-key">OpenRouter API key</label><input type="password" id="llm-key" autocomplete="off" maxlength="4096" placeholder="Paste your API key"><label for="llm-model">OpenRouter model</label><input id="llm-model" maxlength="200" placeholder="Use server default" autocomplete="off"><p class="small">Enter a model ID from OpenRouter. Used for comparison and benchmarks; leave blank to use the server default.</p><label class="check-label"><input type="checkbox" id="remember"> Remember on this device</label><p class="small" id="key-storage-note">Otherwise saved only for this browser session. Keys are sent through your local server and are excluded from saved results.</p><p id="key-status" class="small" role="status"></p><div class="dialog-actions"><button type="button" id="clear-keys" class="button secondary">Clear saved keys</button><button class="button primary" type="submit">Save keys</button></div></form></dialog>
 </body>
 </html>

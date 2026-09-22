@@ -1,5 +1,6 @@
 import './navigation.js';
 import { keyHeaders, readKeys } from './credentials.js';
+import { setupKeySettings } from './key-settings.js';
 import { runBenchmark, summarizeBenchmark } from './tool-selection-benchmark.js';
 const $ = id => document.getElementById(id);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -7,12 +8,13 @@ const json = value => JSON.stringify(value, null, 2);
 const number = value => value == null ? 'Unavailable' : value.toLocaleString(undefined, { maximumFractionDigits: 1 });
 const usd = value => value == null ? 'Unavailable' : `$${value.toFixed(8)}`;
 const pct = value => value == null ? 'Not labeled' : `${(value * 100).toFixed(1)}%`;
-let config, results = {}, history = [], benchmarkResults = [], busy = false, stop = false;
+let config, results = {}, history = [], benchmarkResults = [], busy = false, stop = false, activeMode = null;
 function message(text = '') { $('message').textContent = text; $('message').hidden = !text; }
 function setBusy(value, benchmarking = false) {
   busy = value;
   document.querySelectorAll('#request-form input, #request-form textarea, #request-form select, #request-form button, #benchmark').forEach(node => { node.disabled = value || !config; });
   $('stop').disabled = !value || !benchmarking;
+  $('open-keys').disabled = value;
 }
 async function api(path, body, headers = keyHeaders(), onProgress = () => {}) {
   const controller = new AbortController();
@@ -54,7 +56,7 @@ async function api(path, body, headers = keyHeaders(), onProgress = () => {}) {
 function card(mode) {
   const r = results[mode];
   const title = mode === 'standard' ? 'Standard LLM' : 'Jev Router';
-  if (!r) return `<article class="card result-card"><div class="card-heading"><h3>${title}</h3><span class="pill neutral">Ready</span></div><p class="small empty-result">${mode === 'standard' ? 'All tools · one LLM call' : 'Selected tool · two LLM calls + Jev'}</p></article>`;
+  if (!r || activeMode === mode) return `<article class="card result-card"><div class="card-heading"><h3>${title}</h3><span class="pill neutral">${activeMode === mode ? 'Running…' : 'Ready'}</span></div><p class="small empty-result">${mode === 'standard' ? 'All tools · one LLM call' : 'Selected tool · two LLM calls + Jev'}</p></article>`;
   const fields = [
     ['Status', r.status === 'ok' ? (r.output ? 'Mock executed' : 'No tool executed') : 'Failed'],
     ['Selected tool', r.tool ?? 'None'], ['LLM input tokens', number(r.llm.inputTokens)], ['LLM output tokens', number(r.llm.outputTokens)],
@@ -64,7 +66,7 @@ function card(mode) {
   ];
   if (mode === 'jev') fields.push(['Jev routing latency', r.jev ? `${number(r.jev.latencyMs)} ms` : 'Not called'], ['Jev total tokens', !r.jev ? 'Not called' : r.jev.metrics.totalTokens == null ? 'JEV token usage not exposed' : number(r.jev.metrics.totalTokens)], ['Jev cost (separate)', r.jev ? usd(r.jev.metrics.costUsd) : 'Not called']);
   const secondary = fields.filter(([label]) => !['Status', 'Selected tool', 'Total LLM tokens', 'Total latency'].includes(label));
-  return `<article class="card result-card"><div class="card-heading"><h3>${title}</h3><span class="pill ${r.status === 'ok' ? 'result-ok' : 'result-error'}">${r.status === 'ok' ? r.output ? 'Executed' : 'No match' : 'Failed'}</span></div><p class="selected-tool">${escape(r.tool ?? 'No tool selected')}</p><div class="metrics"><div><strong>${number(r.llm.inputTokens)}</strong><span>LLM input</span></div><div><strong>${number(r.llm.totalTokens)}</strong><span>LLM total</span></div><div><strong>${(r.latencyMs / 1000).toFixed(2)}s</strong><span>Total time</span></div></div>${r.error ? `<p class="error result-error-message" role="alert">${escape(r.error)}</p>` : ''}<details class="result-details"><summary>Run details</summary><p class="small">${escape(r.requestedModel)} · ${r.llmCalls.length} LLM call(s)</p><dl>${secondary.map(([label, value]) => `<dt>${escape(label)}</dt><dd>${escape(value)}</dd>`).join('')}</dl></details></article>`;
+  return `<article class="card result-card"><div class="card-heading"><h3>${title}</h3><span class="pill ${r.status === 'ok' ? 'result-ok' : 'result-error'}">${r.status === 'ok' ? r.output ? 'Mock executed' : 'No match' : 'Failed'}</span></div><p class="selected-tool">${escape(r.tool ?? 'No tool selected')}</p><div class="metrics"><div><strong>${number(r.llm.inputTokens)}</strong><span>LLM input</span></div><div><strong>${number(r.llm.totalTokens)}</strong><span>LLM total</span></div><div><strong>${(r.latencyMs / 1000).toFixed(2)}s</strong><span>Total time</span></div></div>${r.error ? `<p class="error result-error-message" role="alert">${escape(r.error)}</p>` : ''}<details class="result-details"><summary>Run details</summary><p class="small">${escape(r.requestedModel)} · ${r.llmCalls.length} LLM call(s)</p><dl>${secondary.map(([label, value]) => `<dt>${escape(label)}</dt><dd>${escape(value)}</dd>`).join('')}</dl></details></article>`;
 
 }
 function render() {
@@ -75,9 +77,12 @@ function render() {
   const comparable = a && b && a.status === 'ok' && b.status === 'ok' && a.prompt === b.prompt && a.size === b.size && a.requestedModel === b.requestedModel && models(a).every(model => model && models(b).every(other => other === model));
   const parts = [];
   if (a && b) parts.push(`Routing result: ${a.tool && b.tool ? (a.tool === b.tool ? 'SAME' : 'DIFFERENT') : 'Unavailable'}`);
-  if (comparable && a.llm.totalTokens > 0 && b.llm.totalTokens !== null) parts.push(`LLM tokens saved: ${((1 - b.llm.totalTokens / a.llm.totalTokens) * 100).toFixed(1)}%`);
+  if (comparable && a.llm.totalTokens > 0 && b.llm.totalTokens !== null) {
+    const reduction = (1 - b.llm.totalTokens / a.llm.totalTokens) * 100;
+    parts.push(`LLM tokens: ${Math.abs(reduction).toFixed(1)}% ${reduction >= 0 ? 'fewer' : 'more'} with Jev`);
+  }
   else parts.push('Run both successfully with the same model to compare.');
-  if (comparable && a.llm.costUsd !== null && b.llm.costUsd !== null && a.llm.costUsd !== b.llm.costUsd) parts.push(`LLM cost saved: ${usd(a.llm.costUsd - b.llm.costUsd)} (Jev cost excluded)`);
+  if (comparable && a.llm.costUsd !== null && b.llm.costUsd !== null && a.llm.costUsd !== b.llm.costUsd) parts.push(`LLM cost: ${usd(Math.abs(a.llm.costUsd - b.llm.costUsd))} ${a.llm.costUsd > b.llm.costUsd ? 'less' : 'more'} with Jev (Jev cost excluded)`);
   $('comparison-meta').textContent = parts.join(' · ');
 }
 async function registry() {
@@ -88,6 +93,7 @@ async function registry() {
 function expectedCase(prompt) { return config.cases.find(item => item.prompt === prompt); }
 function headers() { return { ...keyHeaders(), 'x-llm-model': $('model').value.trim() }; }
 async function run(params, frozenHeaders) {
+  activeMode = params.mode; render();
   const start = performance.now();
   let stage = 'Connecting to app server';
   const status = () => { $('comparison-meta').textContent = `${params.mode === 'standard' ? 'Standard' : 'Jev Router'} · ${stage} · ${Math.floor((performance.now() - start) / 1000)}s elapsed (50s server limit)`; };
@@ -97,7 +103,7 @@ async function run(params, frozenHeaders) {
     const result = await api('/api/tool-selection/run', { ...params, stream: true }, frozenHeaders, value => { stage = value; status(); });
     history.push(result);
     return result;
-  } finally { clearInterval(timer); }
+  } finally { clearInterval(timer); activeMode = null; render(); }
 }
 
 $('request-form').addEventListener('submit', async event => {
@@ -156,10 +162,24 @@ $('export').addEventListener('click', () => {
   const blob = new Blob([json({ version: 'enterprise-routing-v1', exportedAt: new Date().toISOString(), cases: config?.cases, history, benchmark: { results: benchmarkResults, summary: config ? summarizeBenchmark(benchmarkResults, config.sizes) : [] } })], { type: 'application/json' });
   const url = URL.createObjectURL(blob), link = document.createElement('a'); link.href = url; link.download = 'tool-selection-experiment.json'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
+async function refreshStatus() {
+  try {
+    config = await api('/api/tool-selection/config');
+    $('model').value = readKeys().llmModel || config.routers.llm.model;
+    const { llm, jev } = config.routers;
+    $('provider-status').textContent = `OpenRouter: ${llm.configured ? 'key present' : 'add key'} · Jev: ${jev.configured ? 'key present' : 'add key'}.`;
+    $('key-dot').classList.toggle('connected', llm.configured && jev.configured);
+    $('key-label').textContent = llm.configured && jev.configured ? 'Keys configured' : 'API key settings';
+    $('key-status').textContent = llm.configured && jev.configured ? 'Both keys are configured. Run a comparison to verify access.' : 'Add an OpenRouter key for Standard, and both keys for Jev Router.';
+    if (config.hosted) $('key-storage-note').textContent = 'Keys are sent through this site’s server to the provider, not saved on the server. Unless remembered, they stay only in this browser session.';
+    results = {}; message(); render(); setBusy(false);
+  } catch (error) {
+    $('key-label').textContent = 'API key settings';
+    $('key-status').textContent = 'Could not reach the server. Your saved keys have not been removed.';
+    throw error;
+  }
+}
+setupKeySettings({ refreshStatus, isBusy: () => busy });
 setBusy(false); render();
-try {
-  config = await api('/api/tool-selection/config');
-  $('model').value = readKeys().llmModel || config.routers.llm.model;
-  $('provider-status').textContent = `OpenRouter: ${config.routers.llm.configured ? 'ready' : 'add key'} · Jev: ${config.routers.jev.configured ? 'ready' : 'add key'}.`;
-  await registry(); setBusy(false);
-} catch (error) { message(error.message); }
+try { await refreshStatus(); await registry(); }
+catch (error) { message(error.message); }

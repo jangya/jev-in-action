@@ -1,6 +1,7 @@
 import './navigation.js';
 import { flights, transactions, services, slotsFor } from './demo-data.js';
-import { readKeys, saveKeys, clearKeys, remembered, keyHeaders } from './credentials.js';
+import { keyHeaders } from './credentials.js';
+import { setupKeySettings } from './key-settings.js';
 const $ = id => document.getElementById(id);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const money = value => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value);
@@ -157,21 +158,7 @@ async function refreshStatus() {
     $('key-status').textContent = config.routers.jev.configured ? 'Jev key configured. A demo run will verify access.' : 'Add a Jev key to run the demos.';
   } catch { $('key-label').textContent = 'Server offline'; $('key-status').textContent = 'Could not reach the local server.'; }
 }
-$('open-keys').addEventListener('click', () => { const keys = readKeys(); $('jev-key').value = keys.jev || ''; $('llm-key').value = keys.llm || ''; $('llm-model').value = keys.llmModel || ''; $('remember').checked = remembered(); $('key-dialog').showModal(); });
-$('close-keys').addEventListener('click', () => $('key-dialog').close());
-$('key-dialog').addEventListener('close', () => { $('jev-key').value = ''; $('llm-key').value = ''; });
-$('key-form').addEventListener('submit', async event => {
-  event.preventDefault();
-  const keys = { jev: $('jev-key').value.trim(), llm: $('llm-key').value.trim(), llmModel: $('llm-model').value.trim() };
-  if (keys.llmModel && !/^[a-zA-Z0-9._:/-]+$/.test(keys.llmModel)) { $('key-status').textContent = 'Enter a valid OpenRouter model ID, such as provider/model-name.'; return; }
-  if (Object.values(keys).some(key => /[^\x21-\x7e]/.test(key))) { $('key-status').textContent = 'Keys cannot contain spaces or non-ASCII characters.'; return; }
-  try { saveKeys(keys, $('remember').checked); await refreshStatus(); $('key-dialog').close(); }
-  catch { $('key-status').textContent = 'Browser storage is unavailable. Enable storage to save your key.'; }
-});
-$('clear-keys').addEventListener('click', async () => {
-  try { clearKeys(); $('jev-key').value = ''; $('llm-key').value = ''; $('remember').checked = false; $('llm-model').value = ''; await refreshStatus(); $('key-status').textContent = 'Browser keys cleared. Any server-configured keys still apply.'; }
-  catch { $('key-status').textContent = 'Could not access browser storage.'; }
-});
+setupKeySettings({ refreshStatus, isBusy: () => busy });
 renderFlights(); renderRows(); renderCalendar();
 const initialView = location.hash.slice(1);
 showView(Object.hasOwn(copy, initialView) ? initialView : 'expenses'); refreshStatus();

@@ -3,7 +3,9 @@ export function readKeys() {
   try {
     const session = sessionStorage.getItem(name);
     const storage = session ? sessionStorage : localStorage;
-    const keys = JSON.parse(session || storage.getItem(name) || '{}');
+    const parsed = JSON.parse(session || storage.getItem(name) || '{}');
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+    const keys = Object.fromEntries(['jev', 'llm', 'llmModel'].filter(key => typeof parsed[key] === 'string').map(key => [key, parsed[key]]));
     // Migrate the previous default without clearing credentials or other model choices.
     if (keys.llmModel === 'nvidia/nemotron-3.5-lightning:free') {
       keys.llmModel = 'openai/gpt-4.1-mini';
