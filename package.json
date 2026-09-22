@@ -7,7 +7,7 @@
     "node": "22.x"
   },
   "scripts": {
-    "dev": "node --env-file-if-exists=.env server/index.js",
+    "dev": "node --watch --env-file-if-exists=.env server/index.js",
     "start": "node --env-file-if-exists=.env server/index.js",
     "test": "node --test test/*.test.js",
     "test:browser": "node test/browser.js",
@@ -32,7 +32,7 @@
     "esbuild": "^0.28.2",
     "typescript": "^7.0.2"
   },
-  "description": "Five interactive Jev demos with inspectable decisions, gesture control, and real MCP tool routing.",
+  "description": "Five interactive Jev demos with inspectable decisions, gesture control, and progressive tool disclosure experiments.",
   "license": "MIT",
   "repository": {
     "type": "git",

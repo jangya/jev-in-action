@@ -139,7 +139,7 @@ export function readMetrics(raw, router) {
 export function createRouters(env = process.env, fetchImpl = fetch) {
   const config = {
     llm: {
-      model: env.OPENROUTER_MODEL || "nvidia/nemotron-3.5-lightning:free",
+      model: env.OPENROUTER_MODEL || "openai/gpt-4.1-mini",
       key: env.OPENROUTER_API_KEY,
       url: "https://openrouter.ai/api/v1/chat/completions",
       build: buildLlmPayload,
@@ -160,7 +160,17 @@ export function createRouters(env = process.env, fetchImpl = fetch) {
         { model: c.model, configured: Boolean(c.key) },
       ]),
     ),
-    async decide(state, questions, key) {
+    async complete(payload, key, signal) {
+      const credential = key || config.llm.key;
+      if (!credential) throw new Error("Add an OpenRouter API key.");
+      const response = await fetchImpl(config.llm.url, {
+        method: "POST", headers: { Authorization: `Bearer ${credential}`, "Content-Type": "application/json" },
+        body: JSON.stringify(payload), signal: signal || AbortSignal.timeout(45000),
+      });
+      if (!response.ok) throw new Error(`OpenRouter returned HTTP ${response.status}. Check credentials, model access, and quota.`);
+      return response.json();
+    },
+    async decide(state, questions, key, signal) {
       const credential = key || config.jev.key;
       if (!credential) throw Object.assign(new Error("Add your Jev API key to run this demo."), { status: 401 });
       const start = performance.now();
@@ -171,7 +181,7 @@ export function createRouters(env = process.env, fetchImpl = fetch) {
           method: "POST",
           headers: { Authorization: `Bearer ${credential}`, "Content-Type": "application/json" },
           body: JSON.stringify(providerPayload),
-          signal: AbortSignal.timeout(45000),
+          signal: signal || AbortSignal.timeout(45000),
         });
       } catch {
         throw Object.assign(new Error("Could not reach Jev. Check your connection and try again."), { status: 502 });
@@ -182,7 +192,7 @@ export function createRouters(env = process.env, fetchImpl = fetch) {
       for (const [id, question] of Object.entries(questions)) {
         const answer = raw.answers?.[id];
         if (answer?.type !== "choice" || !Object.hasOwn(question.criteria, answer.choice)) {
-          throw Object.assign(new Error("Jev returned an invalid decision. Nothing was selected."), { status: 502 });
+          throw Object.assign(new Error("Jev returned an invalid decision. Nothing was selected."), { status: 502, rawResponse: raw });
         }
         answers[id] = { choice: answer.choice, confidence: probabilityOrNull(answer.confidence) };
       }

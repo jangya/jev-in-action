@@ -1,3 +1,4 @@
+import { selectionFixture } from './tool-selection-fixtures.js';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
 import { mkdtemp, readFile, access, rm } from 'node:fs/promises';
@@ -19,7 +20,10 @@ let calls = 0;
 const providerKeys = [];
 const testFetch = async (url, options) => {
   providerKeys.push(options.headers.Authorization);
-  const p = JSON.parse(options.body), state = p.state || JSON.parse(p.messages[1].content);
+  const p = JSON.parse(options.body);
+  const fixture = selectionFixture(p);
+  if (fixture) return fixture;
+  const state = p.state || JSON.parse(p.messages[1].content);
   const row = dataset.find(item => item.request === state.userRequest) || dataset[0];
   if (url.includes('typesafe')) {
     const answers = p.questions.route ? {
@@ -62,35 +66,28 @@ try {
   await page.locator('#run').click();
   await page.getByRole('button', { name: 'Confirm demo booking' }).waitFor();
   await page.goto(base + '/compare.html');
-  await page.getByRole('button', { name: 'Route with Jev' }).click();
-  await page.getByText('Jev-only routing', { exact: true }).waitFor();
-  await page.getByRole('button', { name: 'Execute Jev route' }).click();
-  await page.getByText('Execution completed via JEV. Further calls are blocked.').waitFor();
-  assert.equal(calls, 1);
-  await page.reload();
-  await page.getByText('Execution completed via JEV. Further calls are blocked.').waitFor();
-  assert.equal(await page.locator('#execute-jev').isDisabled(), true);
+  await page.getByRole('button', { name: 'Run Both', exact: true }).click();
+  await page.locator('#comparison-meta').filter({ hasText: 'Routing result: SAME' }).waitFor();
+  assert.equal(calls, 0);
   const other = await b.newPage();
   await other.goto(base + '/compare.html');
-  await other.getByText('No comparisons yet. Results will be saved locally.').waitFor();
-  assert.deepEqual(await (await b.request.get(base + '/api/history')).json(), []);
-  const config = await (await b.request.get(base + '/api/config')).json();
+  assert.equal(await other.locator('#context').textContent(), 'No requests yet.');
+  const config = await (await b.request.get(base + '/api/tool-selection/config')).json();
   assert.equal(config.routers.jev.configured, false);
   assert.equal(config.hosted, true);
-  await page.locator('#benchmark-view > summary').click();
-  await page.getByRole('button', { name: 'Run 20-request benchmark' }).click();
-  await page.getByText('Completed 20 / 20 requests. Zero tool executions.').waitFor();
-  assert.equal(calls, 1);
-  assert.equal(await page.locator('#dataset-body .result-good').count(), 40);
+  await page.locator('#benchmark-panel > summary').click();
+  await page.getByRole('button', { name: 'Run Benchmark', exact: true }).click();
+  await page.locator('#progress').filter({ hasText: 'Completed: 100 / 100' }).waitFor();
+  assert.equal(calls, 0);
+  assert.equal(await page.locator('#benchmark-results tr').count(), 10);
   const downloadEvent = page.waitForEvent('download');
-  await page.locator('.export').click();
+  await page.locator('#export').click();
   const download = await downloadEvent;
   const exported = JSON.parse(await readFile(await download.path(), 'utf8'));
-  assert.equal(exported.comparisons.length, 21);
+  assert.equal(exported.history.length, 102);
   assert.ok(!JSON.stringify(exported).includes('visitor-a'));
   assert.ok(providerKeys.every(key => key === 'Bearer visitor-a' || key === 'Bearer visitor-a-llm'));
-  assert.equal((await b.request.post(base + '/api/execute', { data: { tool: 'delete_everything', arguments: {} } })).status(), 400);
-  assert.equal((await b.request.post(base + '/api/compare', { headers: { Origin: 'https://other.example' }, data: { request: 'test' } })).status(), 403);
+  assert.equal((await b.request.post(base + '/api/tool-selection/run', { headers: { Origin: 'https://other.example' }, data: {} })).status(), 403);
   // Root entry point initializes without disk or deployment-key fallback.
   process.env.TYPESAFE_API_KEY = 'deployment-key-must-not-be-used';
   const { default: root } = await import('../app.js');
@@ -101,7 +98,7 @@ try {
   assert.equal(rootConfig.routers.jev.configured, false);
   assert.equal(rootConfig.tools.length, 5);
   assert.deepEqual(errors, []);
-  console.log('Hosted checks passed: root entry point, BYOK isolation, all demos, real in-process MCP calls, session history, duplicate UI protection, per-case benchmark, export, and origin checks. Synthetic provider responses only.');
+  console.log('Hosted checks passed: root entry point, BYOK isolation, all demos, mock execution, session isolation, per-mode benchmark, export, and origin checks. Synthetic provider responses only.');
 } finally {
   await browser?.close();
   if (rootServer) await new Promise(resolve => rootServer.close(resolve));

@@ -1,3 +1,4 @@
+import { selectionFixture } from './tool-selection-fixtures.js';
 import assert from "node:assert/strict";
 import { once } from "node:events";
 import { access, mkdir, mkdtemp } from "node:fs/promises";
@@ -27,6 +28,8 @@ const instrumented = {
 const testFetch = async (url, options) => {
   if (!url.includes("typesafe")) llmCalls++;
   const payload = JSON.parse(options.body);
+  const fixture = selectionFixture(payload);
+  if (fixture) return errorMode && url.includes('typesafe') ? new Response('{}', { status: 429 }) : fixture;
   const state = payload.state || JSON.parse(payload.messages[1].content);
   if (payload.questions && !payload.questions.route) {
     if (errorMode) return new Response('{}', { status: 429 });
@@ -215,105 +218,30 @@ try {
   assert.equal(await page.evaluate(() => localStorage.getItem('jev-playground-keys')), null);
   await page.getByRole('button', { name: 'Close API settings' }).click();
   await page.goto(base + '/compare.html');
-  await page.getByText('Jev-only routing. OpenRouter is not called.', { exact: false }).waitFor();
-  assert.equal(await page.locator('#compare-llm').isChecked(), false);
-  const previousRequest = await page.locator('#request').inputValue();
-  await page.getByRole('button', { name: 'Try another prompt' }).click();
-  assert.notEqual(await page.locator('#request').inputValue(), previousRequest);
-  assert.ok(await page.locator('#expected').inputValue());
-  assert.equal(await page.locator('#execute-jev').isDisabled(), true);
-  await page.locator('#request').fill(previousRequest);
-  const beforeLlm = llmCalls;
-  await page.getByRole('button', { name: 'Route with Jev' }).click();
-  await page.getByText('Jev-only routing', { exact: true }).waitFor();
-  assert.equal(llmCalls, beforeLlm);
-  assert.equal(await page.locator('.router-card').count(), 1);
-  assert.equal(await page.locator('#execute-llm').isHidden(), true);
-  assert.equal(await page.locator('#execute-jev').isEnabled(), true);
+  await page.getByRole('button', { name: 'Run Both', exact: true }).click();
+  await page.locator('#comparison-meta').filter({ hasText: 'Routing result: SAME' }).waitFor();
+  assert.equal(await page.locator('#router-grid article').count(), 2);
+  const context = JSON.parse(await page.locator('#context').textContent());
+  assert.equal(context.standard.llmCalls[0].providerPayload.tools.length, 25);
+  assert.equal(context.jev.llmCalls.length, 2);
+  assert.equal(context.jev.llmCalls[0].providerPayload.tools[0].function.name, 'route');
+  assert.equal(context.jev.llmCalls[1].providerPayload.tools.length, 1);
+  assert.equal(context.jev.output.mocked, true);
   assert.equal(calls, 0);
-  await page.locator('#compare-llm').check();
-  assert.equal(await page.locator(".tool-chip").count(), 5);
-  assert.equal(
-    await page.getByRole("button", { name: "Execute LLM route" }).isDisabled(),
-    true,
-  );
-  await page.locator("#expected").selectOption("get_service_health");
-  await page.getByRole("button", { name: "Compare routers" }).click();
-  await page.getByText("✓ Same tool selected").waitFor();
+  await page.screenshot({ path: 'test-artifacts/comparison-test-fixtures.png', fullPage: true });
+  await page.locator('#benchmark-panel > summary').click();
+  await page.getByRole('button', { name: 'Run Benchmark', exact: true }).click();
+  await page.locator('#progress').filter({ hasText: 'Completed: 100 / 100' }).waitFor();
+  assert.equal(await page.locator('#benchmark-results tr').count(), 10);
   assert.equal(calls, 0);
-  assert.equal(
-    await page.getByText("Correct tool", { exact: true }).count(),
-    2,
-  );
-  await page.locator(".jev").getByText("81.0%", { exact: true }).waitFor();
-  await page
-    .locator(".jev")
-    .getByText("92.0%", { exact: true })
-    .first()
-    .waitFor();
-  await page.screenshot({
-    path: "test-artifacts/comparison-test-fixtures.png",
-    fullPage: true,
-  });
-  await page.getByRole("button", { name: "Execute Jev route" }).click();
-  await page
-    .getByText("Execution completed via JEV. Further calls are blocked.")
-    .waitFor();
-  assert.equal(calls, 1);
-  assert.equal(
-    await page.getByRole("button", { name: "Execute LLM route" }).isDisabled(),
-    true,
-  );
-  await page.reload();
-  await page
-    .getByText("Execution completed via JEV. Further calls are blocked.")
-    .waitFor();
-  assert.equal(calls, 1);
-  await page.locator("#benchmark-view > summary").click();
-  await page.getByRole("button", { name: "Run 20-request benchmark" }).click();
-  await page
-    .getByText("Completed 20 / 20 requests. Zero tool executions.")
-    .waitFor();
-  assert.equal(calls, 1);
-  assert.equal(await page.locator("#dataset-body tr").count(), 20);
-  assert.equal(await page.locator("#dataset-body .result-good").count(), 40);
-  await page.screenshot({
-    path: "test-artifacts/benchmark-test-fixtures.png",
-    fullPage: true,
-  });
-  const exported = await (await page.request.get(base + "/api/export")).json();
-  assert.equal(exported.comparisons.length, 22);
-  assert.equal(Object.keys(exported.executions).length, 1);
-  assert.equal(exported.benchmarkSummaries[0].count, 20);
-  const batchRecord = exported.comparisons.find((c) => c.batchId);
-  const denied = await page.request.post(base + "/api/execute", {
-    data: { comparisonId: batchRecord.id, router: "llm" },
-  });
-  assert.equal(denied.status(), 409);
-  assert.equal(calls, 1);
-  const crossOrigin = await page.request.post(base + "/api/compare", {
-    data: { request: "test" },
-    headers: { Origin: "https://untrusted.example" },
-  });
+  const crossOrigin = await page.request.post(base + '/api/tool-selection/run', { data: {}, headers: { Origin: 'https://untrusted.example' } });
   assert.equal(crossOrigin.status(), 403);
-  const invalid = await page.request.post(base + "/api/compare", {
-    data: { request: "   " },
-  });
+  const invalid = await page.request.post(base + '/api/tool-selection/run', { data: { prompt: '   ', size: 25, mode: 'jev' } });
   assert.equal(invalid.status(), 400);
   errorMode = true;
-  await page.locator("#benchmark-view > summary").click();
-  await page.locator("#compare-llm").check();
-  await page.getByRole("button", { name: "Compare routers" }).click();
-  await page.getByText("Routing failed", { exact: true }).waitFor();
-  assert.equal(
-    await page.getByRole("button", { name: "Execute Jev route" }).isDisabled(),
-    true,
-  );
-  assert.equal(
-    await page.getByRole("button", { name: "Execute LLM route" }).isEnabled(),
-    true,
-  );
-  assert.equal(calls, 1);
+  await page.getByRole('button', { name: 'Run JEV Router', exact: true }).click();
+  await page.locator('#router-grid').getByText('Failed', { exact: true }).waitFor();
+  assert.equal(calls, 0);
   for (const width of [320, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     const overflow = await page.evaluate(
@@ -327,7 +255,7 @@ try {
   );
   assert.deepEqual(errors, []);
   console.log(
-    "Browser checks passed: real MCP execution, comparison, metrics, 20-case benchmark, export, errors, restart UI, cross-origin rejection, keyboard focus, four viewport sizes, zero console errors. Provider responses were test fixtures.",
+    "Browser checks passed: progressive disclosure, comparison, metrics, 100-run benchmark, provider errors, cross-origin rejection, keyboard focus, four viewport sizes, zero console errors. Provider responses were test fixtures.",
   );
 } finally {
   await browser?.close();

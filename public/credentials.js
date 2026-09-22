@@ -1,6 +1,16 @@
 const name = 'jev-playground-keys';
 export function readKeys() {
-  try { return JSON.parse(sessionStorage.getItem(name) || localStorage.getItem(name) || '{}'); }
+  try {
+    const session = sessionStorage.getItem(name);
+    const storage = session ? sessionStorage : localStorage;
+    const keys = JSON.parse(session || storage.getItem(name) || '{}');
+    // Migrate the previous default without clearing credentials or other model choices.
+    if (keys.llmModel === 'nvidia/nemotron-3.5-lightning:free') {
+      keys.llmModel = 'openai/gpt-4.1-mini';
+      try { storage.setItem(name, JSON.stringify(keys)); } catch { /* Use the migrated value even if storage is read-only. */ }
+    }
+    return keys;
+  }
   catch { return {}; }
 }
 export function keyHeaders() {

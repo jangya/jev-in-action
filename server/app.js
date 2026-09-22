@@ -1,3 +1,5 @@
+import { createRegistry, registrySizes, cases, metadata } from './tool-selection/registry.js';
+import { runSelection } from './tool-selection/routing.js';
 import express from 'express';
 import { gestureInput, gestureDecision } from '../dist/gestureDecision.js';
 import { randomUUID } from 'node:crypto';
@@ -30,6 +32,32 @@ export function createApp(experiment, { hosted = false } = {}) {
   app.use(express.json({ limit: '32kb' }));
   const keysFor = req => ({ jev: z.string().max(4096).optional().parse(req.get('x-jev-key')), llm: z.string().max(4096).optional().parse(req.get('x-llm-key')), llmModel: z.string().min(1).max(200).regex(/^[a-zA-Z0-9._:/-]+$/).optional().parse(req.get('x-llm-model')) });
   const statusFor = req => Object.fromEntries(Object.entries(routers.status).map(([id, value]) => [id, { ...value, model: id === 'llm' ? keysFor(req).llmModel || value.model : value.model, configured: value.configured || Boolean(keysFor(req)[id]) }]));
+  app.get('/api/tool-selection/config', (req, res) => res.json({ routers: statusFor(req), sizes: registrySizes, cases, hosted }));
+  app.get('/api/tool-selection/registry', (req, res) => {
+    const size = z.coerce.number().refine(value => registrySizes.includes(value)).parse(req.query.size);
+    res.json(createRegistry(size).map(metadata));
+  });
+  app.post('/api/tool-selection/run', async (req, res) => {
+    const params = z.object({ mode: z.enum(['standard', 'jev']), size: z.number().refine(value => registrySizes.includes(value)), prompt: z.string().trim().min(1).max(4000), caseId: z.string().optional(), stream: z.boolean().optional() }).strict().parse(req.body);
+    const item = params.caseId ? cases.find(item => item.id === params.caseId) : null;
+    if (params.caseId && (!item || item.prompt !== params.prompt)) return res.status(400).json({ error: 'Benchmark case and prompt do not match.' });
+    const keys = keysFor(req);
+    const cancellation = new AbortController();
+    res.on('close', () => { if (!res.writableEnded) cancellation.abort(); });
+    const send = event => { if (!res.destroyed) res.write(JSON.stringify(event) + '\n'); };
+    if (params.stream) {
+      res.setHeader('Content-Type', 'application/x-ndjson');
+      res.setHeader('X-Accel-Buffering', 'no');
+      res.flushHeaders();
+      send({ type: 'progress', stage: 'Starting provider requests' });
+    }
+    const result = await runSelection({ ...params, model: keys.llmModel || routers.status.llm.model, registry: createRegistry(params.size), expectedTool: item?.expectedTool ?? null }, routers, keys, {
+      signal: cancellation.signal, onProgress: update => { if (params.stream) send({ type: 'progress', ...update }); },
+    });
+    if (res.destroyed) return;
+    if (params.stream) { send({ type: 'result', result }); res.end(); }
+    else res.json(result);
+  });
   app.post('/api/gesture', async (req, res) => res.json(await gestureDecision(gestureInput.parse(req.body), routers, keysFor(req).jev)));
   app.post('/api/demo', async (req, res) => res.json(await runDemo(demoInput.parse(req.body), routers, keysFor(req).jev)));
   app.get('/api/config', (req, res) => res.json({ routers: statusFor(req), tools: mcp.tools, dataset, datasetVersion: DATASET_VERSION, dataSource: 'Static demo fixtures', hosted, routing }));
@@ -98,6 +126,7 @@ export function createApp(experiment, { hosted = false } = {}) {
       batchId, ...summarize([...store.comparisons.values()].filter(c => c.batchId === batchId)),
     })),
   }));
+  app.use('/api', (_req, res) => res.status(404).json({ error: 'API endpoint not found. Restart the app server or deploy the updated server, then reload the page.' }));
   app.use(express.static(fileURLToPath(new URL('../public', import.meta.url))));
   app.use((error, _req, res, _next) => {
     if (res.headersSent) return res.end();

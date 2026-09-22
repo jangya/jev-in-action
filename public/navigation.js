@@ -4,7 +4,7 @@ export const useCases = [
   { id: 'expenses', label: 'Categorize expenses', icon: '≡', href: '/#expenses' },
   { id: 'flight', label: 'Book a flight', icon: '↗', href: '/#flight' },
   { id: 'appointment', label: 'Book an appointment', icon: '▦', href: '/#appointment' },
-  { id: 'mcp', label: 'Route an MCP tool', icon: '⇄', href: '/compare.html' },
+  { id: 'mcp', label: 'Compare tool selection', icon: '⇄', href: '/compare.html' },
 ];
 
 const sidebar = document.getElementById('use-case-sidebar');

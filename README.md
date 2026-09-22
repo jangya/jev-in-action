@@ -2,9 +2,9 @@
 
 **Small decisions. Real possibilities.**
 
-Five interactive demos of [TypeSafe Jev](https://docs.typesafe.ai): control an object with hand gestures, categorize expenses, choose a flight, find an appointment, and route a real MCP tool call. Bring your own API key, change a prompt, and inspect what the model received and returned.
+Five interactive demos of [TypeSafe Jev](https://docs.typesafe.ai): control an object with hand gestures, categorize expenses, choose a flight, find an appointment, and compare LLM tool selection with Jev progressive disclosure. Bring your own API key, change a prompt, and inspect what the model received and returned.
 
-Built for developers who want to see how structured AI decisions fit into an application. A browser UI, an Express server, and a real MCP server keep each decision inspectable.
+Built for developers who want to see how structured AI decisions fit into an application. A browser UI and Express server keep each decision inspectable.
 
 [Get started](#quick-start) · [How it works](#how-it-works) · [Roadmap](#roadmap) · [Report an issue](https://github.com/jangya/jev-in-action/issues) · [Contribute](CONTRIBUTING.md)
 
@@ -16,17 +16,17 @@ _The playground before a run; bring your own key to see live decisions._
 
 ## What you can try
 
-| Use case                | Try it                                                           | What happens                                                                                                                                                  |
-| ----------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Gesture web tools**   | Pinch or close a fist over the card, then move and release.      | Jev authorizes a grab; local hand tracking moves the card. Point to select, or close and open your fist twice to reset. Camera-free simulations are included. |
-| **Categorize expenses** | “Treat streaming and music subscriptions as Entertainment.”      | Edit up to 20 transactions; Jev categorizes them in one API request.                                                                                          |
-| **Book a flight**       | “Choose the cheapest available flight, even if it has one stop.” | Code filters a sample Bengaluru–Delhi schedule; Jev selects a match from eligible flights.                                                                    |
-| **Book an appointment** | “Find a time after 3 PM.”                                        | Choose a date and service; Jev picks an available sample slot.                                                                                                |
-| **Route an MCP tool**   | “Show the billing release history in staging.”                   | Jev selects a tool and arguments from a discovered catalog. You can then execute it through a real MCP client.                                                |
+| Use case                   | Try it                                                           | What happens                                                                                                                                                  |
+| -------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Gesture web tools**      | Pinch or close a fist over the card, then move and release.      | Jev authorizes a grab; local hand tracking moves the card. Point to select, or close and open your fist twice to reset. Camera-free simulations are included. |
+| **Categorize expenses**    | “Treat streaming and music subscriptions as Entertainment.”      | Edit up to 20 transactions; Jev categorizes them in one API request.                                                                                          |
+| **Book a flight**          | “Choose the cheapest available flight, even if it has one stop.” | Code filters a sample Bengaluru–Delhi schedule; Jev selects a match from eligible flights.                                                                    |
+| **Book an appointment**    | “Find a time after 3 PM.”                                        | Choose a date and service; Jev picks an available sample slot.                                                                                                |
+| **Compare tool selection** | “Find checkout errors from the last hour.”                       | Compare all-tool LLM selection against Jev routing with progressive schema disclosure, across 10–250 mock tools.                                              |
 
-The expense, flight, and appointment demos include **Try another prompt** and show an action trace, a result summary, and expandable Jev request/response JSON. Gesture controls show the observed hand pose, Jev confidence, and request/response JSON. MCP routing also offers optional LLM comparison, a benchmark, saved history, and JSON export.
+The expense, flight, and appointment demos include **Try another prompt** and show an action trace, a result summary, and expandable Jev request/response JSON. Gesture controls show the observed hand pose, Jev confidence, and request/response JSON. Tool selection offers side-by-side metrics, a benchmark, exact context inspection, and JSON export.
 
-**Real model decisions, sample application data.** Flight schedules, appointment availability, and MCP service records are fixtures. Booking confirmations are simulated; no flight or appointment is actually booked. The MCP protocol connection and tool calls are real. The application never substitutes fake model responses when a key is missing or a provider fails.
+**Real model decisions, sample application data.** Flight schedules, appointment availability, and enterprise tool outputs are fixtures. Booking confirmations are simulated; no flight or appointment is actually booked. Enterprise reads and writes are mocked; no external integration is called. The application never substitutes fake model responses when a key is missing or a provider fails.
 
 ## Quick start
 
@@ -46,18 +46,25 @@ Open [localhost:3000](http://localhost:3000).
 3. Start with **Categorize expenses**, then click **Categorize expenses →**.
 4. Try another prompt, edit the input, and expand **Jev input & output** to inspect the exchange.
 
-Without a key, you can explore the interface and MCP catalog. Model calls require credentials and may incur provider charges. “Key configured” means a key is present; your first run verifies access.
+Without a key, you can explore the interface and mock tool registry. Model calls require credentials and may incur provider charges. “Key configured” means a key is present; your first run verifies access.
 
-### Optional: compare with an LLM
+### Compare tool selection and run the benchmark
 
-In API settings, add an **OpenRouter API key** and optionally an **OpenRouter model** ID that supports tool calling. Then open **Route an MCP tool** and enable **Compare with an LLM**.
+Add an **OpenRouter API key** and a model that supports tool calling in API settings. Add a **Jev key** for the routed path. Open **Compare tool selection** (`/compare.html`), choose a registry size and prompt, then select **Run Standard**, **Run JEV Router**, or **Run Both**.
 
-- Jev-only routing does not call OpenRouter.
-- Comparison sends the same request, tool catalog, and policy to both providers, using their respective APIs.
-- Comparison selects routes; it does not execute tools. Click **Execute Jev route** or **Execute LLM route** to make one MCP call.
-- The expandable **20-request benchmark** uses both providers: 40 provider calls, zero tool executions.
+- **Standard:** the LLM receives every enabled tool schema and selects a tool with arguments. Code validates the arguments and runs a mock function.
+- **Jev Router:** the LLM first receives only `route(intent)`. Jev receives the original prompt, proposed intent, and compact capability descriptions. Only the selected schema is then disclosed to the same LLM for argument generation. Both LLM calls count toward usage and latency.
+- **Context sent to model** shows exact provider requests, responses, errors, and mock output. The internal registry never goes to the main LLM in Jev mode.
+- **Run Benchmark** runs 10 labeled prompts at 10, 25, 50, 100, and 250 tools through both approaches: 100 mode runs and up to 200 provider calls. It alternates mode order, uses the same selected LLM, and shows partial results as it runs. **Stop after current run** stops scheduling more requests. API charges may apply.
+- **Export session** saves all measured results and exact exchanges. Results live only in page memory on both local and hosted versions; export before reloading.
 
-The other demos remain Jev-only.
+Token counts use provider `prompt_tokens` / `input_tokens`, `completion_tokens` / `output_tokens`, and `total_tokens`. When total is absent, it is the sum of reported input and output counts. Counts are never estimated. LLM totals sum every LLM call; missing metadata makes that aggregate unavailable. Cost uses provider `usage.cost` in USD when present; no prices or zero costs are assumed.
+
+Jev usage, cost, native confidence, and routing latency remain separate. Missing Jev tokens display **JEV token usage not exposed**; missing cost and confidence stay unavailable. LLM token reduction is shown only for successful runs with the same prompt, size, requested model, and reported model and complete total-token counts. Cost difference covers LLM calls only, excluding Jev overhead. Latency uses server wall-clock time including network, parsing, and mock execution.
+
+The registry has 25 enterprise capabilities; larger sizes add explicit synthetic workspace variants. All ten expected tools exist at every size. Benchmark accuracy measures tool selection separately from argument validation/execution success. Failures remain in the accuracy denominator; averages show available measurement sample counts. This fixed synthetic evaluation does not establish general routing quality or assume Jev wins. There is no charting dependency, so results use a table.
+
+The other four demos remain Jev-only. The experiment follows the existing server ES-module JavaScript structure and adds no dependencies.
 
 ### Optional: configure the server
 
@@ -72,7 +79,7 @@ Edit `.env`, then restart your server. On Windows, you can copy the file using y
 | `TYPESAFE_API_KEY`   | Server-side fallback Jev key      | Empty                                |
 | `TYPESAFE_MODEL`     | Jev model                         | `jev-latest`                         |
 | `OPENROUTER_API_KEY` | Optional comparison key           | Empty                                |
-| `OPENROUTER_MODEL`   | Tool-calling model for comparison | `nvidia/nemotron-3.5-lightning:free` |
+| `OPENROUTER_MODEL`   | Tool-calling model for comparison | `openai/gpt-4.1-mini` |
 | `PORT`               | Local server port                 | `3000`                               |
 
 Model availability and access depend on the provider. Change the OpenRouter model if the default is unavailable. Browser-supplied keys and the OpenRouter model override server settings for that request.
@@ -88,7 +95,7 @@ Jev selects from defined choices
             ↓
 Code validates the result
             ↓
-UI shows the decision; you confirm any demo booking or MCP execution
+UI shows the decision; you confirm any demo booking
 ```
 
 Jev supplies a structured judgment; application code owns the constraints and execution.
@@ -97,18 +104,14 @@ Jev supplies a structured judgment; application code owns the constraints and ex
 - **Expenses:** one Choice question per transaction, evaluated together.
 - **Flights:** code excludes sold-out flights and enforces budget, arrival, and stop limits. Jev selects among the remaining options using your prompt, with a no-match option.
 - **Appointments:** code supplies available slots for the chosen date and service. Jev selects a suitable slot or returns no match. Times are IST.
-- **MCP:** the server discovers five tools via `tools/list`. Jev selects the tool, service, and environment. The application validates those values before a user-triggered `tools/call`.
-
-The MCP tools are `get_service_health`, `list_incidents`, `list_deployments`, `get_runbook`, and `list_feature_flags`. They accept `auth`, `billing`, or `search`, in `production` or `staging`. Unsupported requests can return `no_tool`.
-
-For payload design, execution guarantees, and benchmark interpretation, read the [architecture notes](docs/architecture.md).
+- **Tool selection:** a configurable enterprise registry, separate routing paths, a validated mock executor, provider metrics, and a browser-driven benchmark runner. Implementation lives in `server/tool-selection/` and `public/tool-selection*.js`. The previous MCP APIs remain available for compatibility but are no longer the displayed use case.
 
 ## Keys, data, and hosting
 
 - UI keys use **sessionStorage** by default. **Remember on this device** switches to **localStorage**, which persists after closing the browser. Both are browser storage, not encrypted credential vaults.
 - Keys travel through the app server to the selected provider. They are not intentionally included in model payloads, saved results, or exports. Prompts and application state are sent to the provider.
 - **Clear saved keys** removes browser keys; any `.env` keys still apply.
-- When running locally, MCP routing records and execution results persist in `.data/events.jsonl`, including request text and successful provider responses. JSON exports contain those records. The other demos do not write results to that journal.
+- The tool-selection experiment does not write to disk or a database. Its page keeps results in memory for JSON export. Legacy MCP APIs still use the local `.data/events.jsonl` journal when called directly.
 - Camera frames and full hand landmarks stay on-device; derived gesture observations go to Jev. Camera use needs HTTPS or localhost and permission. Tracking accuracy depends on lighting and hand visibility; initial actions still wait for Jev.
 - `.env`, `.data/`, dependencies, and generated test artifacts are ignored by Git. Never paste credentials into prompts, issues, or screenshots.
 
@@ -118,15 +121,9 @@ Import this repository into Vercel with **Express** as the Framework Preset and 
 
 **No provider environment variables are required.** Visitors enter their own keys in the UI. Hosted code ignores deployment-level API keys; optional `TYPESAFE_MODEL` and `OPENROUTER_MODEL` variables can set model defaults.
 
-Hosted behavior differs from local development:
+The tool-selection benchmark makes one server request per mode and case. Each mode has a shared 50-second provider deadline within the function's 60-second limit. Hosted visitors supply their own keys, and results remain local to the open page. No shared benchmark history or database is used. Keys pass through the function and are not written to storage.
 
-- History and export belong to the visitor's browser session (up to 100 saved runs). There is no shared server journal or database. Closing the session clears history; export anything you want to keep.
-- The official MCP client and server exchange JSON-RPC messages through the SDK's in-process transport. Local development still uses a subprocess with stdio. Both discover and execute the same read-only fixture tools. Neither connects to live infrastructure.
-- The benchmark makes one server request per case, keeping each request within the function duration instead of holding one long stream open.
-- Hosted execution validates a read-only tool selection submitted by the browser. It has no durable server-side single-execution guarantee or proof that a model selected that call. The UI prevents accidental repeated execution within its saved session. Direct API callers can repeat these harmless sample reads. Do not replace the fixtures with side-effecting tools without adding server-side authorization and durable execution controls.
-- Keys pass through the function to the provider and are not written to server storage. Enable Vercel firewall and spend controls appropriate to your traffic; BYOK avoids shared provider charges but hosting resources can still be consumed.
-
-`npm run dev` continues to use the local entry point and file journal. The shared local journal must not be exposed as a public service.
+`npm run dev` uses local server key fallbacks when configured. Legacy MCP endpoints and the local journal remain for compatibility; the new experiment does not use them.
 
 ## Development
 
@@ -141,7 +138,7 @@ npm run test:browser
 npm run test:hosted
 ```
 
-Tests use synthetic provider responses, so no API keys or paid model calls are needed. Browser tests start their own temporary local test server, exercise real MCP calls, and save screenshots to `test-artifacts/`. They do not verify live model quality. CI runs backend and browser checks on Node.js 22.
+Tests use synthetic provider responses, so no API keys or paid model calls are needed. Browser tests start their own temporary local test server, exercise mock tool selection and the other demos, and save screenshots to `test-artifacts/`. They do not verify live model quality. CI runs backend and browser checks on Node.js 22.
 
 Implementation guidance, the stack, and the file map live in [AGENTS.md](AGENTS.md).
 
