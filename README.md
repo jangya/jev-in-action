@@ -2,7 +2,7 @@
 
 **Small decisions. Real possibilities.**
 
-Five interactive demos of [TypeSafe Jev](https://docs.typesafe.ai): control an object with hand gestures, categorize expenses, choose a flight, find an appointment, and compare LLM tool selection with Jev progressive disclosure. Bring your own API key, change a prompt, and inspect what the model received and returned.
+Six interactive demos of [TypeSafe Jev](https://docs.typesafe.ai): control an object with hand gestures, route workplace requests into enterprise support workflows, categorize expenses, choose a flight, find an appointment, and compare LLM tool selection with Jev progressive disclosure. Bring your own API key, change a prompt, and inspect what the model received and returned.
 
 Built for developers who want to see how structured AI decisions fit into an application. A browser UI and Express server keep each decision inspectable.
 
@@ -19,6 +19,7 @@ _The playground before a run; bring your own key to see live decisions._
 | Use case                   | Try it                                                           | What happens                                                                                                                                                  |
 | -------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Gesture web tools**      | Pinch or close a fist over the card, then move and release.      | Jev authorizes a grab; local hand tracking moves the card. Point to select, or close and open your fist twice to reset. Camera-free simulations are included. |
+| **Floating UI** | “I need access to Figma.” | One enterprise support workspace opens guides, a tool directory, access requests, troubleshooting, service status, IT meetings, and ticket creation/tracking. |
 | **Categorize expenses**    | “Treat streaming and music subscriptions as Entertainment.”      | Edit up to 20 transactions; Jev categorizes them in one API request.                                                                                          |
 | **Book a flight**          | “Choose the cheapest available flight, even if it has one stop.” | Code filters a sample Bengaluru–Delhi schedule; Jev selects a match from eligible flights.                                                                    |
 | **Book an appointment**    | “Find a time after 3 PM.”                                        | Choose a date and service; Jev picks an available sample slot.                                                                                                |
@@ -27,6 +28,8 @@ _The playground before a run; bring your own key to see live decisions._
 The expense, flight, and appointment demos include **Try another prompt** and show an action trace, a result summary, and expandable Jev request/response JSON. Gesture controls show the observed hand pose, Jev confidence, and request/response JSON. Tool selection offers side-by-side metrics, a benchmark, exact context inspection, and JSON export.
 
 **Real model decisions, sample application data.** Flight schedules, appointment availability, and enterprise tool outputs are fixtures. Booking confirmations are simulated; no flight or appointment is actually booked. Enterprise reads and writes are mocked; no external integration is called. The application never substitutes fake model responses when a key is missing or a provider fails.
+
+Floating UI (`/floating.html`) follows Koshara’s registered-surface pattern and draws inspiration from [ShapeShift](https://github.com/anishfn/shapeshift). Jev chooses an enterprise support workflow, a known tool, and a matching guide in one request. The demo connects tool discovery to access requests and troubleshooting to tickets, then tracks created requests in a local queue. Guides, service bulletins, ticket records, and meeting slots are explicitly sample data. No actual access is granted, ticket sent, or meeting invitation created. Requests created here live only until reload. Pauses in typing trigger live decisions with a configured key; labeled manual previews need no key. The inspector preserves the exact model exchange and native workflow confidence.
 
 ## Quick start
 

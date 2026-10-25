@@ -29,7 +29,7 @@
             <div class="card-heading"><span class="step-label">01 / YOUR REQUEST</span></div>
             <div class="prompt-heading"><label for="request">What would you like to do?</label><button type="button" id="example" class="text-button" disabled>⇄ Try another prompt</button></div>
             <textarea id="request" rows="3" maxlength="4000" required>Find checkout errors from the last hour</textarea>
-            <div class="controls selection-controls"><div><label for="size">Available tools</label><select id="size"><option>10</option><option selected>25</option><option>50</option><option>100</option><option>250</option></select></div><div><label for="model">OpenRouter model</label><input id="model" required maxlength="200" pattern="[a-zA-Z0-9._:/-]+"></div></div>
+            <div class="controls selection-controls"><div><label for="size">Available tools</label><select id="size"><option>10</option><option selected>25</option><option>50</option><option>100</option><option>250</option></select></div><div><label for="model">OpenRouter model</label><input id="model" required maxlength="200" pattern="[a-zA-Z0-9._:\/\-]+"></div></div>
             <p class="small provider-status" id="provider-status"></p>
             <div class="selection-actions"><button type="submit" class="button secondary" data-mode="standard">Run Standard</button><button type="submit" class="button secondary" data-mode="jev">Run JEV Router</button><button type="submit" class="button primary" data-mode="both" aria-label="Run Both">Run Both →</button></div>
           </form>

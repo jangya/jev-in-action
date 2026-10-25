@@ -1,6 +1,7 @@
 // Add future use cases here to keep both pages' navigation in sync.
 export const useCases = [
   { id: 'gesture', label: 'Gesture web tools', icon: '✋', href: '/gesture.html' },
+  { id: 'floating', label: 'Floating UI', icon: '✦', href: '/floating.html' },
   { id: 'expenses', label: 'Categorize expenses', icon: '≡', href: '/#expenses' },
   { id: 'flight', label: 'Book a flight', icon: '↗', href: '/#flight' },
   { id: 'appointment', label: 'Book an appointment', icon: '▦', href: '/#appointment' },

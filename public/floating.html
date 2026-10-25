@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="One enterprise support workspace. Jev selects help, tool discovery, access requests, troubleshooting, service status, support meetings, and tickets.">
+  <title>Floating UI · Jev in Action</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%232563eb'/%3E%3Ctext x='15' y='29' fill='white' font-size='27'%3EJ%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/playground.css"><link rel="stylesheet" href="/navigation.css"><link rel="stylesheet" href="/floating.css">
+  <script type="module" src="/floating.js"></script>
+</head>
+<body class="floating-page">
+<a class="skip-link" href="#main-content">Skip to workspace</a>
+<div class="shell">
+    <header class="topbar">
+      <a class="brand" href="/"><span class="logo">J</span><span>Jev in Action<small>Interactive use cases</small></span></a>
+      <div class="header-actions"><a class="github-link" href="https://github.com/jangya/jev-in-action" target="_blank" rel="noopener noreferrer" aria-label="Star Jev in Action on GitHub">☆ Star on GitHub</a><button id="open-keys" class="button secondary"><span class="status-dot" id="key-dot"></span><span id="key-label">API key</span></button></div>
+    </header>
+
+<div class="app-layout"><aside id="use-case-sidebar" class="use-case-sidebar" aria-label="Use case navigation"></aside>
+<main id="main-content" class="app-main" tabindex="-1">
+  <div class="section-intro"><div><h1>One place for workplace help.</h1><p>Find a tool. Get access. Resolve an issue. Jev opens the right workflow.</p></div><span class="pill neutral">Enterprise support · demo workspace</span></div>
+  <div class="workspace">
+    <section class="card main-card" aria-label="Floating UI workspace">
+      <div class="card-heading"><span class="step-label">01 / START WITH INTENT</span><button id="reset" type="button" class="text-button">Clear input ↺</button></div>
+      <div class="floating-intro"><span class="floating-symbol" aria-hidden="true">✦</span><h2>What do you need to get unstuck?</h2><p class="small">From “I need Figma” to “my VPN is down.”<br>One request opens the tools to take the next step.</p></div>
+      <form id="intent-form"><label for="intent">What would you like to do?</label><textarea id="intent" rows="2" maxlength="1000" placeholder="Try “I need access to Figma for a design review”" required aria-describedby="input-hint"></textarea><p id="input-hint" class="small">Pauses in typing use live Jev · Enter to run · Shift + Enter for a new line</p><div class="run-row"><span id="run-status" role="status">Ready when you are</span><button class="button primary" id="run">Find help →</button></div></form>
+      <div id="error" class="error" role="alert" hidden></div>
+      <div class="floating-result"><div class="results-heading"><span class="step-label">02 / YOUR INTERFACE</span><span id="surface-source" class="pill neutral">Waiting for intent</span></div><div id="surface"><div class="trace-empty"><span aria-hidden="true">⌘</span><strong>Your words choose what appears here.</strong><p>Type a request for a live decision, or preview one of the support workflows below.</p></div></div></div>
+      <div class="example-heading"><span class="step-label">EXPLORE THE POSSIBILITIES</span><span class="small">Manual previews · no API call</span></div><div id="examples" class="floating-examples"></div>
+      <p class="small preview-note">Previews open a known UI directly. They do not represent a Jev decision.</p>
+    </section>
+    <div class="right-column">
+      <aside class="card trace-card" aria-label="Interface decision"><div class="trace-heading"><div><span class="step-label">BEHIND THE DECISION</span><h3>From intent to interface</h3></div><span class="live-pill">JEV</span></div>
+        <p class="small">Jev selects from a fixed set of interfaces. Your app opens the workflow and carries context into the next step.</p>
+        <div id="decision" class="floating-decision" role="status"><span class="step-label">SELECTED INTERFACE</span><h3 id="decision-title">Waiting for your words</h3><p id="decision-detail" class="small">No model request yet.</p></div>
+        <div class="metrics"><div><strong id="confidence">—</strong><span>Confidence</span></div><div><strong id="latency">—</strong><span>Jev response</span></div><div><strong id="model-calls">0</strong><span>Completed calls</span></div></div><p class="small preview-note">Confidence is the native Choice distribution concentration. Missing values stay unavailable.</p>
+        <div class="floating-steps"><div><span class="trace-number">1</span><p><strong>You describe the intent</strong><span>One input instead of separate menus.</span></p></div><div><span class="trace-number">2</span><p><strong>Jev selects a surface</strong><span>A guide, directory, form, diagnostic, status panel, or tracker.</span></p></div><div><span class="trace-number">3</span><p><strong>You stay in control</strong><span>Edit fields and confirm. All actions stay in this page.</span></p></div></div>
+      </aside>
+      <section class="card model-exchange" aria-label="Exact Jev input and output"><span class="step-label">UNDER THE HOOD</span><h3>Jev input &amp; output</h3><p id="exchange-status" class="small">Run a live request to inspect the exact exchange. Credentials are excluded.</p><details><summary>Input sent to Jev</summary><pre id="model-input">No request yet.</pre></details><details><summary>Output from Jev</summary><pre id="model-output">No response yet.</pre></details></section>
+    </div>
+  </div>
+  <section class="card floating-activity" aria-label="Local activity"><div class="card-heading"><span class="step-label">03 / YOUR REQUESTS</span><span class="small">This page only</span></div><ul id="activity"><li class="small">Access requests, tickets, and support meetings created here will appear in this queue.</li></ul></section>
+  <div class="bottom-note"><span><span class="status-dot"></span> Jev chooses. Your app renders.</span><p>Sample guides, tools, incidents, and slots. No actual access, tickets, or calendar invites.</p></div>
+</main></div>
+<footer><span>Built with <strong>TypeSafe Jev</strong></span><span class="community-links"><a href="https://github.com/anishfn/shapeshift" target="_blank" rel="noopener noreferrer">Inspired by ShapeShift ↗</a><a href="https://github.com/jangya/jev-in-action/issues">Suggest a demo ↗</a></span></footer>
+</div>
+  <dialog id="key-dialog" aria-labelledby="key-title"><form id="key-form"><div class="dialog-heading"><div><p class="eyebrow">CONNECT YOUR PLAYGROUND</p><h2 id="key-title">A key to get started.</h2></div><button type="button" id="close-keys" class="close-button" aria-label="Close API settings">×</button></div><p class="small">Use your TypeSafe key for Jev decisions. The tool-selection experiment also requires an OpenRouter key for both routing modes.</p><label for="jev-key">Jev / TypeSafe API key</label><input type="password" id="jev-key" autocomplete="off" maxlength="4096" placeholder="Paste your API key"><label for="llm-key">OpenRouter API key <span class="small">(optional)</span></label><input type="password" id="llm-key" autocomplete="off" maxlength="4096" placeholder="For Compare models"><label for="llm-model">OpenRouter model</label><input id="llm-model" maxlength="200" placeholder="Use server default" autocomplete="off"><p class="small">Enter a model ID from OpenRouter. Used for comparison and benchmarks; leave blank to use the server default.</p><label class="check-label"><input type="checkbox" id="remember"> Remember on this device</label><p class="small" id="key-storage-note">Otherwise saved only for this browser session. Keys are sent through your local server and are excluded from saved results.</p><p id="key-status" class="small" role="status"></p><div class="dialog-actions"><button type="button" id="clear-keys" class="button secondary">Clear saved keys</button><button class="button primary" type="submit">Save keys</button></div></form></dialog>
+
+</body></html>

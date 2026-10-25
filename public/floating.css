@@ -1,0 +1,57 @@
+/* Page-specific surfaces reuse playground tokens, controls, cards, and spacing. */
+.floating-intro { padding: 30px 0 8px; text-align: center; }
+.floating-symbol { display: grid; place-items: center; width: 48px; height: 48px; margin: 0 auto 16px; border: 1px solid #dce7fc; border-radius: 14px; background: #f0f5ff; color: var(--blue); font-size: 26px; }
+.floating-intro h2 { font-size: 22px; letter-spacing: -.5px; margin-bottom: 8px; }
+.floating-intro p { line-height: 1.8; }
+#input-hint { margin-top: 8px; font-size: 10px; line-height: 1.7; }
+.floating-result { border-top: 1px solid var(--border); padding-top: 22px; }
+.floating-result .trace-empty { margin-bottom: 0; }
+.intent-surface { padding: 20px; border: 1px solid #dce7fc; border-radius: 12px; background: #fbfcff; animation: surface-in .18s ease-out; }
+.surface-heading { display: flex; align-items: flex-start; gap: 12px; }
+.surface-heading h3 { font-size: 15px; margin: 0 0 5px; }
+.surface-heading p { line-height: 1.7; }
+.surface-icon { display: grid; place-items: center; flex-shrink: 0; width: 34px; height: 34px; border-radius: 10px; background: #edf3ff; color: var(--blue); font-size: 22px; }
+.surface-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.example-heading { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin: 24px 0 12px; }
+.example-heading .small { font-size: 9px; }
+.floating-examples { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.floating-example { display: grid; grid-template-columns: 24px 1fr; gap: 5px 9px; border: 1px solid var(--border); border-radius: 10px; background: white; padding: 13px; color: var(--text); text-align: left; }
+.floating-example:hover { background: #f5f8ff; border-color: #a3c2f9; }
+.floating-example > span { grid-row: 1 / 3; color: var(--blue); font-size: 22px; }
+.floating-example strong { font-size: 11px; font-weight: 600; }
+.floating-example small { color: var(--muted); font-size: 10px; line-height: 1.6; }
+.preview-note { margin-top: 12px; font-size: 10px; line-height: 1.8; }
+.floating-decision { border: 1px solid var(--border); background: #fbfcfe; border-radius: 11px; padding: 17px; margin: 20px 0; }
+.floating-decision h3 { font-size: 18px; margin: 10px 0 8px; }
+.floating-decision p, .trace-card > p { line-height: 1.8; }
+.floating-steps { margin-top: 22px; display: grid; gap: 20px; }
+.floating-steps > div { display: flex; align-items: flex-start; gap: 12px; }
+.floating-steps p { margin: 0; }
+.floating-steps strong { display: block; font-size: 11px; margin: 3px 0 5px; }
+.floating-steps p > span { display: block; color: var(--muted); font-size: 10px; line-height: 1.8; }
+.floating-activity { margin-top: 20px; }
+#activity { padding: 0; margin: 16px 0 0; list-style: none; }
+#activity li { font-size: 11px; line-height: 1.8; overflow-wrap: anywhere; }
+#activity li + li { border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px; }
+@keyframes surface-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .intent-surface { animation: none; } }
+
+.support-submit { margin-top: 20px; }
+.support-policy { margin-top: 14px; line-height: 1.8; }
+.support-notice { margin-top: 16px; padding: 16px; border: 1px solid var(--border); border-radius: 10px; background: white; font-size: 11px; line-height: 1.8; overflow-wrap: anywhere; }
+.support-notice h4 { margin: 10px 0; font-size: 14px; }
+.support-notice p + p { margin-top: 10px; }
+.support-notice ol { padding-left: 18px; }
+.support-notice button { margin-top: 14px; }
+.support-directory { display: grid; gap: 10px; margin-top: 16px; }
+.support-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: white; min-width: 0; font-size: 11px; }
+.support-item p { color: var(--muted); line-height: 1.8; margin: 5px 0; }
+.support-item small, .support-item a { display: block; color: var(--muted); font-size: 10px; margin-top: 6px; }
+.support-item a { color: var(--blue); }
+.support-item .button { padding: 8px 10px; font-size: 10px; flex-shrink: 0; }
+.support-warning { background: #fff6e6; color: #8c631b; border: 1px solid #f0dfbc; }
+.support-record { color: var(--blue); font-size: 12px; text-align: left; line-height: 1.8; }
+#activity li > span { display: block; }
+@media (max-width: 480px) { .support-item { flex-direction: column; } .surface-fields { grid-template-columns: 1fr; gap: 0; } }
+
+@media (max-width: 480px) { .floating-examples { grid-template-columns: 1fr; } .intent-surface { padding: 16px; } .example-heading { flex-wrap: wrap; } }

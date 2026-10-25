@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { dataset, DATASET_VERSION } from './dataset.js';
 import { Experiment, summarize } from './experiment.js';
 import { demoInput, runDemo } from './demo.js';
+import { floatingInput, decideSurface } from './floating.js';
 import { validateDecision } from './catalog.js';
 
 export function createApp(experiment, { hosted = false } = {}) {
@@ -59,6 +60,13 @@ export function createApp(experiment, { hosted = false } = {}) {
     else res.json(result);
   });
   app.post('/api/gesture', async (req, res) => res.json(await gestureDecision(gestureInput.parse(req.body), routers, keysFor(req).jev)));
+  app.post('/api/floating', async (req, res) => {
+    const input = floatingInput.parse(req.body);
+    const cancellation = new AbortController();
+    res.on('close', () => { if (!res.writableEnded) cancellation.abort(); });
+    const result = await decideSurface(input, routers, keysFor(req).jev, AbortSignal.any([cancellation.signal, AbortSignal.timeout(15000)]));
+    if (!res.destroyed) res.json(result);
+  });
   app.post('/api/demo', async (req, res) => res.json(await runDemo(demoInput.parse(req.body), routers, keysFor(req).jev)));
   app.get('/api/config', (req, res) => res.json({ routers: statusFor(req), tools: mcp.tools, dataset, datasetVersion: DATASET_VERSION, dataSource: 'Static demo fixtures', hosted, routing }));
   app.get('/api/history', (_req, res) => res.json(hosted ? [] : [...store.comparisons.values()].reverse().map(c => ({ ...c, execution: store.executions.get(c.id) ?? null }))));

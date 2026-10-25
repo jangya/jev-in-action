@@ -1,3 +1,4 @@
+import { floatingFixture, verifyFloating } from './floating-browser.js';
 import { selectionFixture } from './tool-selection-fixtures.js';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
@@ -21,6 +22,8 @@ const providerKeys = [];
 const testFetch = async (url, options) => {
   providerKeys.push(options.headers.Authorization);
   const p = JSON.parse(options.body);
+  const floating = floatingFixture(p);
+  if (floating) return floating;
   const fixture = selectionFixture(p);
   if (fixture) return fixture;
   const state = p.state || JSON.parse(p.messages[1].content);
@@ -97,6 +100,19 @@ try {
   const rootConfig = await (await a.request.get(rootBase + '/api/config')).json();
   assert.equal(rootConfig.routers.jev.configured, false);
   assert.equal(rootConfig.tools.length, 5);
+  await other.goto(base + '/floating.html');
+  await other.locator('#key-label').filter({ hasText: 'Add API key' }).waitFor();
+  let floatingRequests = 0;
+  other.on('request', request => { if (request.url().endsWith('/api/floating')) floatingRequests++; });
+  await other.getByRole('button', { name: 'Preview Request access' }).click();
+  assert.equal(await other.locator('#support-tool').inputValue(), 'figma');
+  await other.locator('#run').click();
+  await other.locator('#run-status').filter({ hasText: 'Add a Jev API key' }).waitFor();
+  assert.equal(floatingRequests, 0);
+  const floatingPage = await a.newPage();
+  await verifyFloating(floatingPage, base, { visitorKey: 'visitor-a' });
+  assert.ok(providerKeys.every(key => key === 'Bearer visitor-a' || key === 'Bearer visitor-a-llm'));
+  await floatingPage.close();
   assert.deepEqual(errors, []);
   console.log('Hosted checks passed: root entry point, BYOK isolation, all demos, mock execution, session isolation, per-mode benchmark, export, and origin checks. Synthetic provider responses only.');
 } finally {

@@ -1,10 +1,11 @@
+import { floatingFixture, verifyFloating } from './floating-browser.js';
 import { selectionFixture } from './tool-selection-fixtures.js';
 import assert from "node:assert/strict";
 import { once } from "node:events";
 import { access, mkdir, mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { chromium } from "@playwright/test";
+import { chromium, expect } from "@playwright/test";
 import { connectMcp } from "../server/mcp-client.js";
 import { createRouters } from "../server/routers.js";
 import { Store } from "../server/store.js";
@@ -28,6 +29,8 @@ const instrumented = {
 const testFetch = async (url, options) => {
   if (!url.includes("typesafe")) llmCalls++;
   const payload = JSON.parse(options.body);
+  const floating = floatingFixture(payload);
+  if (floating) return floating;
   const fixture = selectionFixture(payload);
   if (fixture) return errorMode && url.includes('typesafe') ? new Response('{}', { status: 429 }) : fixture;
   const state = payload.state || JSON.parse(payload.messages[1].content);
@@ -227,7 +230,7 @@ try {
   await page.getByRole('button', { name: 'Save keys', exact: true }).click();
   await page.locator('#key-dialog').waitFor({ state: 'hidden' });
   assert.equal(await page.locator('#model').inputValue(), 'test/model');
-  assert.equal(await page.locator('#jev-key').inputValue(), '');
+  await expect(page.locator('#jev-key')).toHaveValue('');
   assert.ok(page.url().endsWith('/compare.html'));
   await page.getByRole('button', { name: 'Run Both', exact: true }).click();
   await page.locator('#comparison-meta').filter({ hasText: 'Routing result: SAME' }).waitFor();
@@ -264,6 +267,10 @@ try {
   assert.ok(
     await page.evaluate(() => document.activeElement !== document.body),
   );
+  const floatingPage = await browser.newPage();
+  await floatingPage.setViewportSize({ width: 1440, height: 1100 });
+  await verifyFloating(floatingPage, base, { screenshots: true });
+  await floatingPage.close();
   assert.deepEqual(errors, []);
   console.log(
     "Browser checks passed: progressive disclosure, comparison, metrics, 100-run benchmark, provider errors, cross-origin rejection, keyboard focus, four viewport sizes, zero console errors. Provider responses were test fixtures.",
